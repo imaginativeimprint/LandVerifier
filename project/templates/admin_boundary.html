@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Land Boundary Marking System | Mandya Region</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3b 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Sidebar Styles */
+        .admin-sidebar {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+            position: fixed;
+            width: 320px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .main-content {
+            margin-left: 320px;
+            padding: 20px;
+        }
+
+        /* Map Container */
+        .map-container {
+            height: calc(100vh - 40px);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        #boundaryMap {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Form Styles */
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #1a472a;
+            margin-top: 10px;
+        }
+
+        .btn-success-custom {
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3b 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+
+        .btn-success-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Land List */
+        .land-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .land-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .land-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .land-item.active {
+            background: #28a745;
+            color: white;
+        }
+
+        /* Coordinate Display */
+        .coord-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast-custom {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        /* Toolbar */
+        .draw-toolbar {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tool-btn {
+            background: #f0f0f0;
+            border: none;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .tool-btn:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        .tool-btn.active {
+            background: #28a745;
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 100%;
+                position: relative;
+                min-height: auto;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .map-container {
+                height: 500px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1a472a;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2d5a3b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="text-center text-white">
+            <div class="spinner-border" style="width: 3rem; height: 3rem;"></div>
+            <p class="mt-3">Saving boundary data...</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Admin Sidebar -->
+    <div class="admin-sidebar">
+        <div class="text-center mb-4">
+            <h2>🌾 Land Admin</h2>
+            <p class="small">Boundary Marking System</p>
+            <hr>
+        </div>
+
+        <!-- Stats -->
+        <div class="row">
+            <div class="col-6">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalLands">0</div>
+                    <small>Total Lands</small>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalAcres">0</div>
+                    <small>Total Acres</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add New Land Form -->
+        <div class="form-card">
+            <h5 class="mb-3">➕ Add New Land</h5>
+            <div class="mb-2">
+                <label class="form-label small">Land ID</label>
+                <input type="text" class="form-control form-control-sm" id="landId" placeholder="MAN-LAND-006">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Owner Name</label>
+                <input type="text" class="form-control form-control-sm" id="ownerName" placeholder="Farmer Name">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Aadhar Number</label>
+                <input type="text" class="form-control form-control-sm" id="ownerAadhar" placeholder="12-digit Aadhar">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Area (Acres)</label>
+                <input type="number" class="form-control form-control-sm" id="areaAcres" placeholder="5.5">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small">Crop Type</label>
+                <select class="form-control form-control-sm" id="cropType">
+                    <option value="Sugarcane">Sugarcane</option>
+                    <option value="Paddy">Paddy</option>
+                    <option value="Ragi">Ragi</option>
+                    <option value="Coconut">Coconut</option>
+                    <option value="Maize">Maize</option>
+                    <option value="Wheat">Wheat</option>
+                </select>
+            </div>
+            <button class="btn btn-success-custom w-100 mt-3" onclick="startDrawing()">
+                ✏️ Draw Boundary on Map
+            </button>
+        </div>
+
+        <!-- Drawing Tools -->
+        <div class="form-card" id="drawTools" style="display:none;">
+            <h5 class="mb-3">✏️ Drawing Tools</h5>
+            <div class="draw-toolbar">
+                <button class="tool-btn" onclick="enableDrawing()">📐 Start Drawing</button>
+                <button class="tool-btn" onclick="clearDrawing()">🗑️ Clear</button>
+                <button class="tool-btn" onclick="cancelDrawing()">❌ Cancel</button>
+            </div>
+            <div class="coord-box" id="coordDisplay">
+                <small>Click on map to draw polygon points...</small>
+            </div>
+            <button class="btn btn-success w-100 mt-3" onclick="saveBoundary()" id="saveBoundaryBtn" style="display:none;">
+                💾 Save Boundary
+            </button>
+        </div>
+
+        <!-- Existing Lands List -->
+        <div class="form-card">
+            <h5 class="mb-3">📋 Existing Lands</h5>
+            <div class="land-list" id="landList">
+                <div class="text-center text-muted">Loading lands...</div>
+            </div>
+        </div>
+
+        <!-- Export/Import -->
+        <div class="form-card">
+            <h5 class="mb-3">📁 Data Management</h5>
+            <button class="btn btn-outline-light w-100 mb-2" onclick="exportData()">
+                📤 Export All Data (JSON)
+            </button>
+            <button class="btn btn-outline-light w-100" onclick="importData()">
+                📥 Import Data (JSON)
+            </button>
+            <input type="file" id="importFile" style="display:none;" accept=".json">
+        </div>
+
+        <hr>
+        <div class="text-center small">
+            <a href="/" class="text-white">← Back to Home</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="map-container">
+            <div id="boundaryMap"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize map
+        let map = null;
+        let drawnItems = null;
+        let drawControl = null;
+        let currentPolygon = null;
+        let currentPolygonPoints = [];
+        let allBoundaries = {};
+        let selectedLandId = null;
+        let drawingLayer = null;
+
+        // Initialize map centered on Mandya, PESEC area
+        function initMap() {
+            map = L.map('boundaryMap').setView([12.5230, 76.8915], 16);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Add scale bar
+            L.control.scale().addTo(map);
+            
+            // Initialize drawn items layer
+            drawnItems = L.featureGroup().addTo(map);
+            
+            // Load existing boundaries from server
+            loadBoundaries();
+        }
+
+        // Load all boundaries from server
+        async function loadBoundaries() {
+            try {
+                const response = await fetch('/api/lands');
+                const data = await response.json();
+                allBoundaries = {};
+                
+                // Clear existing layers
+                drawnItems.clearLayers();
+                
+                // Draw each land boundary
+                data.lands.forEach(land => {
+                    allBoundaries[land.id] = land;
+                    drawExistingBoundary(land);
+                });
+                
+                updateLandList();
+                updateStats();
+                
+                showToast(`Loaded ${data.lands.length} land boundaries`, 'success');
+            } catch (error) {
+                console.error('Error loading boundaries:', error);
+                showToast('Error loading boundaries', 'error');
+            }
+        }
+
+        // Draw existing boundary on map
+        function drawExistingBoundary(land) {
+            const coords = land.polygon.map(p => [p.lat, p.lng]);
+            const polygon = L.polygon(coords, {
+                color: '#28a745',
+                weight: 3,
+                fillColor: '#28a745',
+                fillOpacity: 0.3,
+                landId: land.id
+            }).addTo(drawnItems);
+            
+            // Add popup with land info
+            polygon.bindPopup(`
+                <b>🌾 Land ID:</b> ${land.id}<br>
+                <b>Owner:</b> ${land.owner_name}<br>
+                <b>Area:</b> ${land.area_acres} acres<br>
+                <b>Crop:</b> ${land.crop_type}<br>
+                <button class="btn btn-sm btn-primary mt-2" onclick="editLand('${land.id}')">✏️ Edit</button>
+                <button class="btn btn-sm btn-danger mt-2" onclick="deleteLand('${land.id}')">🗑️ Delete</button>
+            `);
+            
+            // Add center marker
+            if (land.center) {
+                L.marker([land.center.lat, land.center.lng], {
+                    icon: L.divIcon({ 
+                        className: 'bg-success rounded-circle p-1', 
+                        html: '📍', 
+                        iconSize: [20, 20] 
+                    })
+                }).addTo(drawnItems).bindPopup(`${land.owner_name}'s Land Center`);
+            }
+        }
+
+        // Start drawing new boundary
+        function startDrawing() {
+            const landId = document.getElementById('landId').value;
+            const ownerName = document.getElementById('ownerName').value;
+            const ownerAadhar = document.getElementById('ownerAadhar').value;
+            const areaAcres = document.getElementById('areaAcres').value;
+            
+            if (!landId || !ownerName || !ownerAadhar || !areaAcres) {
+                showToast('Please fill all land details first', 'warning');
+                return;
+            }
+            
+            if (ownerAadhar.length !== 12) {
+                showToast('Please enter valid 12-digit Aadhar number', 'warning');
+                return;
+            }
+            
+            document.getElementById('drawTools').style.display = 'block';
+            showToast('Click on map to draw polygon points. Double-click to finish.', 'info');
+            enableDrawing();
+        }
+
+        // Enable drawing mode
+        let drawingPoints = [];
+        
+        function enableDrawing() {
+            // Remove existing drawing layer
+            if (drawingLayer) {
+                map.removeLayer(drawingLayer);
+            }
+            
+            drawingPoints = [];
+            drawingLayer = L.layerGroup().addTo(map);
+            
+            map.on('click', addDrawingPoint);
+            map.on('dblclick', finishDrawing);
+            
+            document.getElementById('coordDisplay').innerHTML = '<small>Click points on map to draw boundary...</small>';
+            showToast('Drawing mode active. Click on map to add points.', 'success');
+        }
+
+        // Add point while drawing
+        function addDrawingPoint(e) {
+            const { lat, lng } = e.latlng;
+            drawingPoints.push({ lat: lat.toFixed(6), lng: lng.toFixed(6) });
+            
+            // Add marker
+            L.marker([lat, lng], {
+                icon: L.divIcon({ className: 'bg-primary', html: `${drawingPoints.length}`, iconSize: [20, 20] })
+            }).addTo(drawingLayer);
+            
+            // Update display
+            const coordHtml = drawingPoints.map((p, i) => 
+                `<div>Point ${i+1}: ${p.lat}, ${p.lng}</div>`
+            ).join('');
+            document.getElementById('coordDisplay').innerHTML = coordHtml + '<hr><small>Double-click to finish drawing</small>';
+            
+            // Draw temporary line
+            if (drawingPoints.length > 1) {
+                const tempPoints = drawingPoints.map(p => [parseFloat(p.lat), parseFloat(p.lng)]);
+                if (window.tempLine) {
+                    map.removeLayer(window.tempLine);
+                }
+                window.tempLine = L.polyline(tempPoints, { color: '#ffc107', weight: 3 }).addTo(drawingLayer);
+            }
+        }
+
+        // Finish drawing polygon
+        function finishDrawing() {
+            if (drawingPoints.length < 3) {
+                showToast('Need at least 3 points to create a polygon', 'warning');
+                return;
+            }
+            
+            // Draw final polygon
+            const polygonPoints = drawingPoints.map(p => [parseFloat(p.lat), parseFloat(p.lng)]);
+            currentPolygon = L.polygon(polygonPoints, {
+                color: '#007bff',
+                weight: 3,
+                fillColor: '#007bff',
+                fillOpacity: 0.3
+            }).addTo(drawingLayer);
+            
+            // Calculate area and center
+            const center = calculateCenter(polygonPoints);
+            const area = calculatePolygonArea(polygonPoints);
+            
+            document.getElementById('coordDisplay').innerHTML += `
+                <hr>
+                <div class="alert alert-success mt-2">
+                    <strong>Polygon Complete!</strong><br>
+                    Points: ${drawingPoints.length}<br>
+                    Area: ${area.toFixed(2)} hectares (${(area * 2.471).toFixed(2)} acres)<br>
+                    Center: ${center.lat.toFixed(6)}, ${center.lng.toFixed(6)}
+                </div>
+            `;
+            
+            document.getElementById('saveBoundaryBtn').style.display = 'block';
+            
+            // Remove drawing event listeners
+            map.off('click', addDrawingPoint);
+            map.off('dblclick', finishDrawing);
+        }
+
+        // Calculate polygon center
+        function calculateCenter(points) {
+            let latSum = 0, lngSum = 0;
+            points.forEach(p => {
+                latSum += p[0];
+                lngSum += p[1];
+            });
+            return {
+                lat: latSum / points.length,
+                lng: lngSum / points.length
+            };
+        }
+
+        // Calculate polygon area (Shoelace formula)
+        function calculatePolygonArea(points) {
+            let area = 0;
+            for (let i = 0; i < points.length; i++) {
+                const j = (i + 1) % points.length;
+                area += points[i][0] * points[j][1];
+                area -= points[j][0] * points[i][1];
+            }
+            area = Math.abs(area) / 2;
+            // Convert to hectares (approximate)
+            return area * 111.32 * 111.32 / 10000;
+        }
+
+        // Save boundary to server
+        async function saveBoundary() {
+            if (!currentPolygon || drawingPoints.length < 3) {
+                showToast('No polygon drawn to save', 'warning');
+                return;
+            }
+            
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            const landData = {
+                land_id: document.getElementById('landId').value,
+                owner_name: document.getElementById('ownerName').value,
+                owner_aadhar: document.getElementById('ownerAadhar').value,
+                area_acres: parseFloat(document.getElementById('areaAcres').value),
+                crop_type: document.getElementById('cropType').value,
+                polygon: drawingPoints,
+                center: calculateCenter(drawingPoints.map(p => [parseFloat(p.lat), parseFloat(p.lng)]))
+            };
+            
+            try {
+                const response = await fetch('/api/admin/save-boundary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(landData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Boundary saved successfully!', 'success');
+                    resetDrawingForm();
+                    loadBoundaries(); // Reload all boundaries
+                } else {
+                    showToast('Error saving boundary: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showToast('Error saving boundary', 'error');
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+
+        // Reset drawing form
+        function resetDrawingForm() {
+            if (drawingLayer) {
+                map.removeLayer(drawingLayer);
+            }
+            drawingPoints = [];
+            currentPolygon = null;
+            document.getElementById('drawTools').style.display = 'none';
+            document.getElementById('saveBoundaryBtn').style.display = 'none';
+            document.getElementById('landId').value = '';
+            document.getElementById('ownerName').value = '';
+            document.getElementById('ownerAadhar').value = '';
+            document.getElementById('areaAcres').value = '';
+        }
+
+        // Clear current drawing
+        function clearDrawing() {
+            if (drawingLayer) {
+                map.removeLayer(drawingLayer);
+            }
+            drawingPoints = [];
+            currentPolygon = null;
+            drawingLayer = L.layerGroup().addTo(map);
+            document.getElementById('coordDisplay').innerHTML = '<small>Click on map to draw polygon points...</small>';
+        }
+
+        // Cancel drawing
+        function cancelDrawing() {
+            resetDrawingForm();
+            map.off('click', addDrawingPoint);
+            map.off('dblclick', finishDrawing);
+        }
+
+        // Edit existing land
+        async function editLand(landId) {
+            const land = allBoundaries[landId];
+            if (!land) return;
+            
+            if (confirm(`Edit land ${landId}?`)) {
+                // Zoom to land
+                const center = land.center;
+                map.setView([center.lat, center.lng], 18);
+                
+                // Highlight the land
+                const landBounds = land.polygon.map(p => [p.lat, p.lng]);
+                const highlightPolygon = L.polygon(landBounds, {
+                    color: '#ffc107',
+                    weight: 4,
+                    fillColor: '#ffc107',
+                    fillOpacity: 0.2
+                }).addTo(map);
+                
+                setTimeout(() => map.removeLayer(highlightPolygon), 3000);
+                
+                showToast(`Editing ${landId} - Draw new boundary to replace`, 'info');
+                startDrawing();
+            }
+        }
+
+        // Delete land
+        async function deleteLand(landId) {
+            if (confirm(`Are you sure you want to delete land ${landId}?`)) {
+                try {
+                    const response = await fetch(`/api/admin/delete-boundary/${landId}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showToast('Land deleted successfully', 'success');
+                        loadBoundaries();
+                    } else {
+                        showToast('Error deleting land', 'error');
+                    }
+                } catch (error) {
+                    showToast('Error deleting land', 'error');
+                }
+            }
+        }
+
+        // Update land list in sidebar
+        function updateLandList() {
+            const landListDiv = document.getElementById('landList');
+            const lands = Object.values(allBoundaries);
+            
+            if (lands.length === 0) {
+                landListDiv.innerHTML = '<div class="text-center text-muted">No lands registered</div>';
+                return;
+            }
+            
+            landListDiv.innerHTML = lands.map(land => `
+                <div class="land-item" onclick="zoomToLand('${land.id}')">
+                    <strong>${land.id}</strong><br>
+                    <small>${land.owner_name} | ${land.area_acres} acres</small><br>
+                    <small class="text-muted">${land.crop_type}</small>
+                </div>
+            `).join('');
+        }
+
+        // Update statistics
+        function updateStats() {
+            const lands = Object.values(allBoundaries);
+            document.getElementById('totalLands').innerText = lands.length;
+            const totalAcres = lands.reduce((sum, land) => sum + land.area_acres, 0);
+            document.getElementById('totalAcres').innerText = totalAcres.toFixed(1);
+        }
+
+        // Zoom to specific land
+        function zoomToLand(landId) {
+            const land = allBoundaries[landId];
+            if (land && land.center) {
+                map.setView([land.center.lat, land.center.lng], 18);
+                showToast(`Zoomed to ${landId}`, 'info');
+            }
+        }
+
+        // Export data
+        function exportData() {
+            const data = {
+                boundaries: allBoundaries,
+                export_date: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `mandya_boundaries_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('Data exported successfully!', 'success');
+        }
+
+        // Import data
+        function importData() {
+            document.getElementById('importFile').click();
+            document.getElementById('importFile').onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        const response = await fetch('/api/admin/import-boundaries', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(importedData)
+                        });
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showToast('Data imported successfully!', 'success');
+                            loadBoundaries();
+                        } else {
+                            showToast('Error importing data', 'error');
+                        }
+                    } catch (error) {
+                        showToast('Invalid JSON file', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast-custom';
+            toast.style.borderLeft = `4px solid ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#ffc107'}`;
+            toast.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</strong>
+                        ${message}
+                    </div>
+                    <button class="btn-close btn-sm" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+            `;
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, 5000);
+        }
+
+        // Add landmark points (PESEC campus)
+        function addLandmarks() {
+            // Add PESEC campus marker
+            L.marker([12.5230, 76.8915], {
+                icon: L.divIcon({ className: 'bg-warning', html: '🏫', iconSize: [30, 30] })
+            }).addTo(map).bindPopup('<b>PES College of Engineering</b><br>Reference Point');
+        }
+
+        // Initialize everything
+        initMap();
+        addLandmarks();
+
+        // Make functions global for HTML onclick
+        window.startDrawing = startDrawing;
+        window.enableDrawing = enableDrawing;
+        window.clearDrawing = clearDrawing;
+        window.cancelDrawing = cancelDrawing;
+        window.saveBoundary = saveBoundary;
+        window.editLand = editLand;
+        window.deleteLand = deleteLand;
+        window.zoomToLand = zoomToLand;
+        window.exportData = exportData;
+        window.importData = importData;
+    </script>
+</body>
+</html>

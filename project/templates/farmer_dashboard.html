@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ farmer_name }}'s Land - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .header { background: linear-gradient(135deg, #1a472a 0%, #2d5a3b 100%); color: white; padding: 15px 0; }
+        .map-container { height: 450px; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .camera-container { background: #000; border-radius: 15px; overflow: hidden; position: relative; }
+        #video, #canvas { width: 100%; height: auto; display: block; }
+        .upload-area { border: 2px dashed #28a745; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; background: #f8f9fa; transition: all 0.3s; }
+        .upload-area:hover { background: #e8f5e9; border-color: #1a472a; }
+        .location-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #ffc107; transition: all 0.3s ease; }
+        .btn-verify { background: #28a745; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 600; width: 100%; transition: all 0.3s; }
+        .btn-verify:hover { background: #1a472a; transform: translateY(-2px); }
+        .status-inside { background: #e8f5e9; border-left-color: #28a745; }
+        .status-outside { background: #fce8e6; border-left-color: #d93025; }
+        .preview-img { max-width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <h2>
+                    <i class="fas fa-tractor me-2"></i>{{ farmer_name }}
+                    {% if is_verified %}
+                        <span class="badge bg-success ms-2" style="font-size: 0.95rem; font-weight: 600; vertical-align: middle; border: 1px solid rgba(255,255,255,0.4);">
+                            <i class="fas fa-check-circle me-1"></i> Verified Plot Owner
+                        </span>
+                    {% endif %}
+                </h2>
+                <p class="mb-0">Land ID: {{ land_id }} | Grid Sector: {{ land_data.grid_position }}</p>
+            </div>
+            <a href="/logout" class="btn btn-outline-light btn-sm"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px; background: linear-gradient(to right, #fdfbf7, #ffffff); border-left: 5px solid #0b2240 !important;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold text-dark d-flex align-items-center mb-2">
+                    <i class="fas fa-building-columns text-primary me-2"></i> Institutional Bank Credit Desk
+                </h5>
+                <p class="small text-muted mb-3">Isolate exclusive micro-credit packages extended directly to your account based on your verified telemetry history logs.</p>
+                
+                <div id="bankOfferFramework">
+                    <div class="p-3 bg-light rounded-3 text-center small text-secondary">
+                        <i class="fas fa-magnifying-glass-chart mb-2 fa-lg"></i><br>
+                        Scanning institutional channels for active capital invitations...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-7 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                        <span>📍 Live Grid Tracking Map</span>
+                        {% if is_verified %}
+                            <span class="badge bg-success-soft text-success small" style="background-color: #e8f5e9;"><i class="fas fa-lock me-1"></i> Coordinates Anchored</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="map" class="map-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                {% if is_verified %}
+                    <div class="alert alert-success border-0 p-4 shadow-sm mb-3 text-center" style="border-radius: 15px; background-color: #e8f5e9;">
+                        <div class="mb-3">
+                            <span style="font-size: 3.5rem;">🌾</span>
+                        </div>
+                        <h5 class="fw-bold text-success">Verification Terminated Successfully</h5>
+                        <p class="small text-secondary mb-3">
+                            Telemetry checks confirm that your physical agricultural coordinates align seamlessly with our registered grid layouts. Your account has been permanently validated inside our database ledger.
+                        </p>
+                        <hr style="border-color: rgba(40, 167, 69, 0.2)">
+                        <div class="text-start small px-2 py-1 bg-white rounded-3 border border-success border-opacity-25 font-monospace text-muted text-center">
+                            Secure System Entry Signature Recorded
+                        </div>
+                    </div>
+                    
+                    <div id="locationStatus" style="display:none;"></div>
+                    <button id="captureBtn" style="display:none;"></button>
+                    <div id="uploadArea" style="display:none;"></div>
+                    <input type="file" id="fileInput" style="display:none;">
+                    <img id="preview" style="display:none;">
+                    <button id="uploadBtn" style="display:none;"></button>
+                {% else %}
+                    <div class="location-card" id="locationStatus">
+                        <div class="spinner-border spinner-border-sm text-warning me-2"></div>
+                        Awaiting authorization for hardware location sensors...
+                    </div>
+
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-header bg-white fw-bold">📸 Method 1: Live Capture at Farm Location</div>
+                        <div class="card-body">
+                            <div class="camera-container"><video id="video" autoplay playsinline></video></div>
+                            <button class="btn btn-verify mt-3" id="captureBtn" disabled>
+                                <i class="fas fa-camera me-2"></i>Establishing Satellite Link...
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-header bg-white fw-bold">📂 Method 2: Upload Geo-Tagged Image File</div>
+                        <div class="card-body">
+                            <div class="upload-area" id="uploadArea">
+                                <i class="fas fa-file-image fs-2 text-success mb-2"></i>
+                                <p class="mb-0">Select an original smartphone photo</p>
+                                <small class="text-muted">Must contain embedded EXIF metadata</small>
+                                <input type="file" id="fileInput" accept="image/jpeg,image/jpg" style="display:none;">
+                            </div>
+                            <img id="preview" class="preview-img">
+                            <button class="btn btn-primary w-100 mt-3" id="uploadBtn" style="display:none;">Verify Uploaded Image Data</button>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div id="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <script>
+        const sessionFarmerAadhar = "{{ farmer_aadhar }}"; 
+
+        function pollActiveBankInvitations() {
+            const targetBox = document.getElementById('bankOfferFramework');
+            
+            fetch('/bank/portal')
+                .then(res => res.text())
+                .then(htmlContext => {
+                    // Check if proposal invitation has been extended or finalized in system cache
+                    const isOffered = htmlContext.includes(`extendCapitalProposal('${sessionFarmerAadhar}')`) === false;
+                    const isApproved = htmlContext.includes(`Capital Disbursed`) || htmlContext.includes(`APPROVED`);
+
+                    if (isApproved) {
+                        targetBox.innerHTML = `
+                            <div class="alert alert-success border-0 p-3 rounded-3 mb-0 d-flex align-items-center">
+                                <i class="fas fa-circle-check text-success fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Investment Active & Disbursed!</h6>
+                                    <p class="small mb-0 opacity-90">Your credit allocation tier has been fully approved. Funds have been successfully drawn down into your digital wallet.</p>
+                                </div>
+                            </div>`;
+                    } else if (isOffered) {
+                        targetBox.innerHTML = `
+                            <div class="p-3 border border-warning rounded-3 bg-white shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="badge bg-warning text-dark px-2.5 py-1.5 fw-bold"><i class="fas fa-envelope-open-text me-1"></i> Capital Invitation Extended</span>
+                                    <span class="small font-monospace text-muted" style="font-size:11px;">Status: KYC Required</span>
+                                </div>
+                                <p class="small text-dark mb-3">Apex Credit wants to invest in your farm. To unlock low-interest capital, please complete the immediate statutory compliance check below:</p>
+                                
+                                <form id="kycVerificationForm" onsubmit="submitKYCOffers(event)" class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-secondary">Upload Identity Document Proof</label>
+                                        <input type="file" id="kycAadharFile" class="form-control form-control-sm" required accept="image/*">
+                                        <div class="form-text" style="font-size:11px;">Cross-checks coordinates against registration parameters.</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-secondary">Annual Income Certificate Value (₹)</label>
+                                        <input type="number" id="kycIncomeAmount" class="form-control form-control-sm" required placeholder="e.g. 180000">
+                                        <div class="form-text" style="font-size:11px;">Subsidies capped for incomes below ₹3,00,000/yr.</div>
+                                    </div>
+                                    <div class="col-12 mt-3 text-end">
+                                        <button type="submit" class="btn btn-primary btn-sm fw-bold px-4 rounded-2"><i class="fas fa-signature me-1"></i> Validate & Claim Capital</button>
+                                    </div>
+                                </form>
+                                <div id="kycFeedbackNotice" class="mt-3"></div>
+                            </div>`;
+                    } else {
+                        targetBox.innerHTML = `
+                            <div class="p-3 bg-light rounded-3 text-center small text-secondary">
+                                <i class="fas fa-shield-heart mb-2 fa-lg text-muted"></i><br>
+                                Your land records are verified and secure. Maintain a high spatial stability rating score to unlock proactive bank investment capital channels.
+                            </div>`;
+                    }
+                });
+        }
+
+        function submitKYCOffers(e) {
+            e.preventDefault();
+            const notice = document.getElementById('kycFeedbackNotice');
+            const income = document.getElementById('kycIncomeAmount').value;
+            
+            notice.innerHTML = `<div class="spinner-border spinner-border-sm text-primary me-2"></div> Running statutory audits...`;
+            
+            const payload = new FormData();
+            payload.append('aadhar', sessionFarmerAadhar);
+            payload.append('income', income);
+            
+            fetch('/api/farmer/check-eligibility', {
+                method: 'POST',
+                body: payload
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    let benefitLines = data.benefits.map(b => `<li><i class="fas fa-gift text-success me-1"></i> ${b}</li>`).join('');
+                    notice.innerHTML = `
+                        <div class="alert alert-success p-3 mt-2 small">
+                            <h6>🎉 Compliance Verification Complete!</h6>
+                            <p class="mb-1">Allocated Tier: <strong>${data.tier}</strong> | Interest Rate: <strong>${data.interest_rate}</strong></p>
+                            <ul class="list-unstyled mb-0 mt-2">${benefitLines}</ul>
+                            <button class="btn btn-sm btn-success fw-bold w-100 mt-3" onclick="location.reload()"><i class="fas fa-check-double me-1"></i> Draw Down Funds to Wallet</button>
+                        </div>`;
+                } else {
+                    notice.innerHTML = `
+                        <div class="alert alert-danger p-3 mt-2 small mb-0">
+                            <h6>❌ Eligibility Compliance Deficit</h6>
+                            <p class="mb-0 font-monospace" style="font-size:11px;">Reason: ${data.error}</p>
+                        </div>`;
+                }
+            });
+        }
+
+        setTimeout(pollActiveBankInvitations, 800);
+    </script>
+
+    <script>
+        const targetLandId = '{{ land_id }}';
+        const farmerAadhar = '{{ farmer_aadhar }}';
+        const personalPolygonCoords = {{ land_data.polygon | tojson }};
+        const landCenter = {{ land_data.center | tojson }};
+        const isProfileAlreadyVerified = {{ 'true' if is_verified else 'false' }};
+        
+        let map, userMarker, accuracyCircle;
+        let currentLiveLat = null;
+        let currentLiveLng = null;
+
+        function initMap() {
+            map = L.map('map').setView([landCenter.lat, landCenter.lng], 17);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            const polyPoints = personalPolygonCoords.map(p => [p.lat, p.lng]);
+            L.polygon(polyPoints, {
+                color: '#28a745',
+                weight: 3,
+                fillColor: '#28a745',
+                fillOpacity: 0.35
+            }).addTo(map).bindPopup("<b>Your Allocated Farm Plot Sector</b>").openPopup();
+
+            fetch('/api/admin/all-boundaries')
+                .then(r => r.json())
+                .then(data => {
+                    data.boundaries.forEach(land => {
+                        if (land.id !== targetLandId) {
+                            L.polygon(land.polygon.map(p => [p.lat, p.lng]), {
+                                color: '#007bff',
+                                weight: 1,
+                                fillColor: '#007bff',
+                                fillOpacity: 0.05
+                            }).addTo(map).bindPopup(`Grid ID: ${land.grid_position}<br>Owner: ${land.owner_name}`);
+                        }
+                    });
+                });
+        }
+
+        function checkInsideBoundary(lat, lng, polygon) {
+            let inside = false;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                const xi = polygon[i].lng, yi = polygon[i].lat;
+                const xj = polygon[j].lng, yj = polygon[j].lat;
+                
+                const intersect = ((yi > lat) !== (yj > lat))
+                    && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+        function trackLocation() {
+            if (isProfileAlreadyVerified) return; // Exit tracking logic if already processed
+            if (!navigator.geolocation) {
+                document.getElementById('locationStatus').innerHTML = "❌ Browser does not support hardware GPS services.";
+                return;
+            }
+
+            const geoOptions = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
+
+            navigator.geolocation.watchPosition(
+                (pos) => {
+                    currentLiveLat = pos.coords.latitude;
+                    currentLiveLng = pos.coords.longitude;
+                    const accuracy = pos.coords.accuracy;
+                    
+                    const captureBtn = document.getElementById('captureBtn');
+                    if (captureBtn) {
+                        captureBtn.disabled = false;
+                        captureBtn.innerHTML = '<i class="fas fa-camera me-2"></i>Capture & Verify Field Location';
+                    }
+
+                    if (userMarker) {
+                        userMarker.setLatLng([currentLiveLat, currentLiveLng]);
+                        accuracyCircle.setLatLng([currentLiveLat, currentLiveLng]);
+                        accuracyCircle.setRadius(accuracy);
+                    } else {
+                        userMarker = L.marker([currentLiveLat, currentLiveLng]).addTo(map).bindPopup("You are here").openPopup();
+                        accuracyCircle = L.circle([currentLiveLat, currentLiveLng], {
+                            radius: accuracy,
+                            color: '#17a2b8',
+                            fillColor: '#17a2b8',
+                            fillOpacity: 0.15
+                        }).addTo(map);
+                    }
+
+                    const isInside = checkInsideBoundary(currentLiveLat, currentLiveLng, personalPolygonCoords);
+                    const statusBox = document.getElementById('locationStatus');
+                    
+                    if (statusBox) {
+                        if (isInside) {
+                            statusBox.className = "location-card status-inside text-success fw-semibold";
+                            statusBox.innerHTML = `<strong>🛰️ GPS Status: Lock Acquired (±${Math.round(accuracy)}m)</strong><br>Coordinates: ${currentLiveLat.toFixed(6)}, ${currentLiveLng.toFixed(6)}<br>✅ Status: Inside your registered boundary. Ready to verify.`;
+                        } else {
+                            statusBox.className = "location-card status-outside text-danger";
+                            statusBox.innerHTML = `<strong>🛰️ GPS Status: Lock Acquired (±${Math.round(accuracy)}m)</strong><br>Coordinates: ${currentLiveLat.toFixed(6)}, ${currentLiveLng.toFixed(6)}<br>❌ Status: Outside your registered boundary area. Please move closer to your field plot.`;
+                        }
+                    }
+                },
+                (err) => {
+                    const statusBox = document.getElementById('locationStatus');
+                    if (statusBox) {
+                        statusBox.className = "location-card status-outside text-danger";
+                        statusBox.innerHTML = `⚠️ GPS Error: ${err.message}. Please ensure device location / high accuracy modes are active.`;
+                    }
+                },
+                geoOptions
+            );
+        }
+
+        async function initCamera() {
+            if (isProfileAlreadyVerified) return;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                document.getElementById('video').srcObject = stream;
+            } catch (err) {
+                console.error("Camera interface initialization failure:", err);
+            }
+        }
+
+        function sendVerificationPayload(base64Image, isLiveFeed) {
+            showOverlay();
+            
+            const payload = {
+                aadhar: farmerAadhar,
+                image: base64Image,
+                live_latitude: isLiveFeed ? currentLiveLat : null,
+                live_longitude: isLiveFeed ? currentLiveLng : null
+            };
+
+            fetch('/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                hideOverlay();
+                const resultDiv = document.getElementById('result');
+                if (data.verified) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success mt-3 shadow-sm">
+                            <h5>🎉 Verification Successful!</h5>
+                            <p class="mb-1"><strong>Certificate ID:</strong> ${data.certificate_id}</p>
+                            <p class="mb-1"><strong>Grid Block Match:</strong> Position ${data.grid_position}</p>
+                            <p class="mb-0">Confidence Score Matrix: ${data.confidence}%</p>
+                            <a href="/api/certificate/${data.certificate_id}/download" class="btn btn-success btn-sm mt-3 w-100"><i class="fas fa-download me-1"></i> Download Authenticated Survey Slip</a>
+                        </div>`;
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger mt-3 shadow-sm"><h5>❌ Verification Rejected</h5><p class="mb-0">${data.error || data.reason}</p></div>`;
+                }
+            })
+            .catch(() => { hideOverlay(); alert("Transaction synchronization failure encountered."); });
+        }
+
+        if (!isProfileAlreadyVerified) {
+            document.getElementById('captureBtn').addEventListener('click', () => {
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                sendVerificationPayload(canvas.toDataURL('image/jpeg'), true);
+            });
+
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    document.getElementById('preview').src = event.target.result;
+                    document.getElementById('preview').style.display = 'block';
+                    document.getElementById('uploadBtn').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            });
+
+            document.getElementById('uploadBtn').addEventListener('click', () => {
+                const previewSrc = document.getElementById('preview').src;
+                sendVerificationPayload(previewSrc, false);
+            });
+        }
+
+        function showOverlay() {
+            let loading = document.createElement('div');
+            loading.id = 'loader';
+            loading.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; font-weight:bold;";
+            loading.innerHTML = '<div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;"></div><div>Running Spatial Validation Protocol...</div>';
+            document.body.appendChild(loading);
+        }
+        
+        function hideOverlay() { const el = document.getElementById('loader'); if(el) el.remove(); }
+
+        // Trigger Layout Renders
+        initMap();
+        trackLocation();
+        initCamera();
+    </script>
+</body>
+</html>

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Mandya Land Verification System | Official Agricultural Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a2f1a 0%, #1a5f2a 50%, #0a2f1a 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation .circle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-100px) rotate(180deg); }
+        }
+
+        /* Generate multiple circles */
+        .bg-animation .circle:nth-child(1) { width: 300px; height: 300px; top: 10%; left: -100px; animation-duration: 25s; }
+        .bg-animation .circle:nth-child(2) { width: 500px; height: 500px; bottom: -200px; right: -200px; animation-duration: 30s; }
+        .bg-animation .circle:nth-child(3) { width: 200px; height: 200px; top: 50%; left: 30%; animation-duration: 18s; }
+        .bg-animation .circle:nth-child(4) { width: 400px; height: 400px; bottom: 20%; right: 10%; animation-duration: 22s; }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-section {
+            position: relative;
+            z-index: 10;
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            padding: 80px 0;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stats-container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .stat-item {
+            text-align: center;
+            color: white;
+            border-right: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-item:last-child { border-right: none; }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .role-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            height: 100%;
+        }
+
+        .role-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+        }
+
+        .role-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .role-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a472a;
+            margin-bottom: 15px;
+        }
+
+        .role-description {
+            color: #6c757d;
+            margin-bottom: 25px;
+        }
+
+        .btn-farmer {
+            background: linear-gradient(135deg, #28a745 0%, #1a472a 100%);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-admin {
+            background: linear-gradient(135deg, #dc3545 0%, #8b0000 100%);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-farmer:hover, .btn-admin:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .feature-section {
+            padding: 80px 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+
+        .footer {
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 40px 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2rem; }
+            .stat-item { border-right: none; margin-bottom: 15px; }
+            .role-card { margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation">
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="container">
+            <a class="navbar-brand text-white" href="#" style="font-weight: 700; font-size: 1.5rem;">
+                🌾 LandVerify Mandya
+            </a>
+    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+        
+        <div class="d-flex align-items-center gap-2 text-white">
+            <i class="fas fa-tractor text-success"></i>
+            <div>
+                <span class="fw-bold" style="font-size: 1rem;">Kisan Saarthi</span>
+                <span class="text-white-50 ms-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">CADASTRAL NETWORK</span>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2" style="font-size: 0.85rem;">
+            
+            <a href="/farmer/login" class="text-white text-decoration-none fw-bold px-2 py-1">
+                <i class="fas fa-tractor text-success me-1"></i> Farmer Gateway
+            </a>
+            
+            <span class="text-white-50 opacity-25">|</span>
+
+            <a href="/admin/login" class="text-white-50 text-decoration-none hover-white px-2 py-1">
+                <i class="fas fa-user-shield me-1"></i> Admin Core
+            </a>
+
+            <span class="text-white-50 opacity-25">|</span>
+
+            <a href="/bank/portal" class="text-white-50 text-decoration-none hover-white px-2 py-1">
+                <i class="fas fa-building-columns me-1"></i> Bank Desk
+            </a>
+            
+        </div>
+
+    </div>
+</nav>
+
+<style>
+    .hover-white { transition: color 0.2s ease; }
+    .hover-white:hover { color: #ffffff !important; }
+</style>
+            <div>
+                <span class="text-white-50 me-3">v2.0</span>
+                <button class="btn btn-outline-light btn-sm" onclick="showDemo()">
+                    <i class="fas fa-play"></i> Demo
+                </button>
+                <a href="/farmer/schemes" class="badge bg-warning text-dark text-decoration-none px-2 py-1.5 fw-bold shadow-sm" style="font-size: 0.8rem; transition: all 0.2s;">
+                        <i class="fas fa-gavel me-1"></i> Government Schemes Directory →
+                    </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7" data-aos="fade-right">
+                    <h1 class="hero-title">
+                        GPS-Based Agricultural<br>
+                        Land Boundary Verification
+                    </h1>
+                    <p class="hero-subtitle">
+                        Mandya District's official platform for real-time land verification using 
+                        geotagged imagery and blockchain-certified records.
+                    </p>
+                    
+                    <div class="stats-container">
+                        <div class="row">
+                            <div class="col-md-4 col-6">
+                                <div class="stat-item">
+                                    <div class="stat-number" id="totalLands">625+</div>
+                                    <div class="stat-label">Registered Lands</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <div class="stat-item">
+                                    <div class="stat-number" id="totalFarmers">500+</div>
+                                    <div class="stat-label">Active Farmers</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-12">
+                                <div class="stat-item">
+                                    <div class="stat-number" id="totalVerifications">1,200+</div>
+                                    <div class="stat-label">Verifications</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-5 mt-4 mt-lg-0" data-aos="fade-left">
+                    <div class="role-card">
+                        <div class="role-icon">👨‍🌾</div>
+                        <h3 class="role-title">Farmer Login</h3>
+                        <p class="role-description">
+                            Access your registered land boundary, verify ownership, and download certificates.
+                        </p>
+                        <a href="/farmer/login" class="btn-farmer">
+                            <i class="fas fa-leaf me-2"></i> Login as Farmer
+                        </a>
+                    </div>
+                    
+                    <div class="role-card mt-4">
+                        <div class="role-icon">👨‍💼</div>
+                        <h3 class="role-title">Admin Login</h3>
+                        <p class="role-description">
+                            Manage all land boundaries, view statistics, and export verification data.
+                        </p>
+                        <a href="/admin/login" class="btn-admin">
+                            <i class="fas fa-shield-alt me-2"></i> Login as Admin
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="feature-section">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h2 style="color: white; font-weight: 700;">Why Choose LandVerify?</h2>
+                <p style="color: rgba(255,255,255,0.8);">Advanced features for secure land verification</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
+                        <h4>GPS Boundary Marking</h4>
+                        <p>Pre-marked agricultural land boundaries with high-precision GPS coordinates.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-shield-virus"></i></div>
+                        <h4>VPN Detection</h4>
+                        <p>Advanced multi-layer VPN/proxy detection to prevent location spoofing.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-file-pdf"></i></div>
+                        <h4>Digital Certificates</h4>
+                        <p>Instant PDF certificates with QR codes for easy verification.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-link"></i></div>
+                        <h4>Blockchain Ready</h4>
+                        <p>Every certificate is registered on simulated blockchain for tamper-proof records.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                        <h4>Live Analytics</h4>
+                        <p>Real-time statistics and verification tracking dashboard.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="600">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-database"></i></div>
+                        <h4>CSV Audit Log</h4>
+                        <p>Every verification is logged to CSV for complete audit trail.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>🌾 LandVerify Mandya</h5>
+                    <p>Official agricultural land verification system for Mandya District, Karnataka.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/farmer/login" class="text-white-50">Farmer Portal</a></li>
+                        <li><a href="/admin/login" class="text-white-50">Admin Portal</a></li>
+                        <li><a href="#" class="text-white-50">Help & Support</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact</h5>
+                    <p>PES College of Engineering, Mandya<br>
+                    Email: support@landverify.in<br>
+                    Helpline: 1800-XXX-XXXX</p>
+                </div>
+            </div>
+            <hr class="bg-white-50">
+            <div class="text-center">
+                <small>&copy; 2026 LandVerify Mandya. All rights reserved. | Version 2.0</small>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        function showDemo() {
+            alert("Demo Mode: Use Aadhar 123456789012 to login as Ramesh Gowda");
+        }
+
+        // Fetch live stats
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                if (stats && stats.csv) {
+                    document.getElementById('totalVerifications').innerText = stats.csv.total_verifications || '0';
+                }
+            } catch(e) {
+                console.log('Stats loading deferred');
+            }
+        }
+        
+        loadStats();
+        setInterval(loadStats, 30000);
+    </script>
+    <div id="main-gateway-content">
+    <button id="global-ai-trigger" class="btn btn-success rounded-circle shadow-lg d-flex align-items-center justify-content-center" 
+            style="position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; z-index: 999; border: 2px solid white;"
+            onclick="switchToAIChatMode()">
+        <i class="fas fa-robot fa-xl"></i>
+    </button>
+</div>
+
+<div id="ai-chat-interface-panel" class="d-none" style="min-height: 100vh; background: linear-gradient(135deg, #f5f7f6 0%, #e4e9e6 100%); padding-top: 30px;">
+    <div class="container" style="max-width: 700px;">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <button class="btn btn-outline-dark btn-sm px-3 fw-bold shadow-sm bg-white" style="border-radius: 8px;" onclick="returnToMainGateway()">
+                <i class="fas fa-arrow-left me-2"></i> Back to Main System
+            </button>
+            <span class="badge bg-success px-3 py-2 fs-6 shadow-sm"><i class="fas fa-leaf me-1 text-warning"></i> Logic Labs Krishi AI Node</span>
+        </div>
+    
+        <div class="card shadow border-0 mb-4" style="border-radius: 16px; overflow: hidden;">
+            <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="bg-success rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                        <i class="fas fa-seedling text-white"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">Multi-Language Farm Consultant</h6>
+                        <small class="text-muted text-success" style="font-size: 11px;">Powered by Llama-3.3 Engine</small>
+                    </div>
+                </div>
+                <select id="chat-session-lang" class="form-select form-select-sm border-0 fw-bold bg-light" style="width: auto; cursor: pointer;">
+                    <option value="en">English (Default)</option>
+                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                </select>
+            </div>
+
+            <div id="agri-chat-stream-box" class="card-body bg-light" style="height: 400px; overflow-y: auto; padding: 20px;">
+                <div class="text-start mb-3">
+                    <div class="p-3 d-inline-block rounded-3 bg-white border text-dark shadow-sm" style="max-width: 85%; border-top-left-radius: 0px !important;">
+                        🌾 Welcome! Ask me anything about crop optimization, livestock diseases, or chemical fertilizers. Select your language above.
+                    </div>
+                    <a href="/whatsapp-group" class="btn btn-sm btn-primary fw-bold"><i class="fas fa-whatsapp"></i> Join Whatsapp Group for more info</a>
+                </div>
+            </div>
+
+            <div class="card-footer bg-white p-3 border-0">
+                <div class="input-group input-group-lg">
+                    <input type="text" id="agri-user-query" class="form-control text-dark border-1" placeholder="Type crop question or pest symptoms here..." style="font-size: 15px; border-radius: 10px 0 0 10px;">
+                    <button class="btn btn-success px-4" style="border-radius: 0 10px 10px 0;" onclick="submitQueryToAgriBackend()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+    function switchToAIChatMode() {
+        // Hide the primary application gateway element frame
+        document.getElementById('main-gateway-content').classList.add('d-none');
+        // Uncover the modern AI interface grid layout workspace
+        document.getElementById('ai-chat-interface-panel').classList.remove('d-none');
+        document.getElementById('agri-user-query').focus();
+    }
+
+    function returnToMainGateway() {
+        // Hide the full-screen AI layer
+        document.getElementById('ai-chat-interface-panel').classList.add('d-none');
+        // Re-display your standard index.html structure layers
+        document.getElementById('main-gateway-content').classList.remove('d-none');
+    }
+
+    function submitQueryToAgriBackend() {
+        const queryInput = document.getElementById('agri-user-query');
+        const streamBox = document.getElementById('agri-chat-stream-box');
+        const languageSelection = document.getElementById('chat-session-lang').value;
+        
+        const textVal = queryInput.value.trim();
+        if(!textVal) return;
+
+        // Append User Message Node Block
+        streamBox.innerHTML += `
+            <div class="text-end mb-3">
+                <div class="p-3 d-inline-block rounded-3 bg-dark text-white shadow-sm" style="max-width: 85%; border-top-right-radius: 0px !important; font-size:14px;">
+                    ${textVal}
+                </div>
+            </div>
+        `;
+        
+        queryInput.value = "";
+        streamBox.scrollTop = streamBox.scrollHeight;
+
+        // Establish unique temporary reference identifier for transient processing animation frames
+        const dynamicLoadId = 'msg-load-' + Date.now();
+        streamBox.innerHTML += `
+            <div id="${dynamicLoadId}" class="text-start mb-3">
+                <div class="p-3 d-inline-block rounded-3 bg-white border text-muted shadow-sm" style="font-size:14px;">
+                    <i class="fas fa-spinner fa-spin text-success me-2"></i> Analyzing agricultural dataset...
+                </div>
+            </div>
+        `;
+        streamBox.scrollTop = streamBox.scrollHeight;
+
+        // Fetch execution call directly targeting your unified app route
+        fetch('/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                question: textVal,
+                language: languageSelection
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById(dynamicLoadId).remove();
+            
+            // Append Response metrics safely down streaming pipeline interface loops
+            streamBox.innerHTML += `
+                <div class="text-start mb-3">
+                    <div class="p-3 d-inline-block rounded-3 text-white shadow-sm" style="max-width: 85%; border-top-left-radius: 0px !important; background-color: #245131 !important; font-size:14px;">
+                        ${data.answer}
+                    </div>
+                </div>
+            `;
+            streamBox.scrollTop = streamBox.scrollHeight;
+        })
+        .catch(() => {
+            document.getElementById(dynamicLoadId).remove();
+            streamBox.innerHTML += `
+                <div class="text-start mb-3"><div class="alert alert-danger p-2 small">System translation timeout. Check api key allocation.</div></div>
+            `;
+        });
+    }
+
+    // Capture physical key submissions targeting search bars 
+    document.getElementById('agri-user-query').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            submitQueryToAgriBackend();
+        }
+    });
+</script>
+</body>
+</html>

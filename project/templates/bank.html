@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Portal - Agro-Investment Ledger</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f0f4f1; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .bank-nav { background: #0b2240; color: white; padding: 18px; }
+        .metric-banner { background: white; border-radius: 12px; padding: 20px; border-left: 5px solid #0b2240; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .farmer-card { background: white; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; border: 1px solid #e2e8f0; }
+        .farmer-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <div class="bank-nav shadow-sm mb-4">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0 fw-bold"><i class="fas fa-building-columns me-2"></i>Apex Agricultural Credit Platform</h4>
+                <p class="mb-0 opacity-75 small">Telemetry-Driven Investment & Capital Allocation Console</p>
+            </div>
+            <span class="badge bg-success px-3 py-2"><i class="fas fa-shield-halved me-1"></i> Live Spatial Ledger Hook Active</span>
+        </div>
+    </div>
+<div class="text-center mt-3">
+                <a href="/" class="text-decoration-none"><i class="fas fa-arrow-left me-1"></i> Back to Home</a>
+                <span class="mx-2">|</span>
+                <a href="/admin/login" class="text-decoration-none"><i class="fas fa-shield-alt me-1"></i> Admin Login</a>
+            </div>
+    <div class="container-fluid px-4">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="metric-banner">
+                    <span class="text-muted small text-uppercase fw-bold">Target Underwriting Rule</span>
+                    <h4 class="fw-bold mb-0 text-dark">Spatial Stability Tracking (Confidence &ge; 90%)</h4>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="metric-banner" style="border-left-color: #198754;">
+                    <span class="text-muted small text-uppercase fw-bold">Active Subventions Portfolio</span>
+                    <h4 class="fw-bold mb-0 text-success">Low-Earn Smallholder Credit Cap: ₹3,00,000</h4>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-users-viewfinder me-2 text-primary"></i>Discovered High-Performance Farm Profiles</h5>
+        <div class="row">
+            {% if not farmers %}
+            <div class="col-12 text-center py-5">
+                <div class="card p-5 border-0 shadow-sm rounded-3">
+                    <i class="fas fa-folder-open text-muted fa-3x mb-3"></i>
+                    <h6 class="text-muted">No farmers matching spatial stability conditions logged in `verified_farmers.csv` yet.</h6>
+                </div>
+            </div>
+            {% endif %}
+
+            {% for farmer in farmers %}
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card farmer-card h-100 border-0">
+                    <div class="card-body p-4 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="fw-bold mb-0 text-dark">{{ farmer.farmer_name }}</h5>
+                                    <small class="text-muted font-monospace">UID: {{ farmer.aadhar_masked }}</small>
+                                </div>
+                                <span class="badge bg-success px-2.5 py-1.5 font-monospace">{{ farmer.confidence }}% Score</span>
+                            </div>
+                            
+                            <div class="p-3 bg-light rounded-3 mb-3 small">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-secondary">Assigned Plot Code:</span>
+                                    <strong class="text-dark">{{ farmer.land_id }} (Grid {{ farmer.grid_position }})</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-secondary">Foliage Density Matrix:</span>
+                                    <strong class="text-success">{{ farmer.vegetation_score }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-secondary">Latest Validation Step:</span>
+                                    <strong class="text-secondary">{{ farmer.last_verified }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            {% if allocations.get(farmer.aadhar_raw) %}
+                                {% if allocations.get(farmer.aadhar_raw).status == 'APPROVED' %}
+                                <div class="alert alert-success p-2 small mb-0 text-center fw-bold">
+                                    <i class="fas fa-circle-check me-1"></i> Capital Disbursed ({{ allocations.get(farmer.aadhar_raw).tier }})
+                                </div>
+                                {% else %}
+                                <div class="alert alert-warning p-2 small mb-0 text-center fw-bold">
+                                    <i class="fas fa-clock fa-spin me-1"></i> Proposal Pending Farmer Verification
+                                </div>
+                                {% endif %}
+                            {% else %}
+                            <button id="btn-{{ farmer.land_id }}" class="btn btn-dark w-100 fw-bold rounded-3 small" onclick="proposeInvestment('{{ farmer.aadhar_raw }}', '{{ farmer.land_id }}')">
+                                <i class="fas fa-paper-plane me-1"></i> Extend Investment Capital Proposal
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function extendCapitalProposal(farmerAadhar) {
+    // Check to ensure a valid identification string is present
+    if (!farmerAadhar) {
+        alert("Error: Cannot read farmer identification token.");
+        return;
+    }
+
+    // Direct POST request to your app.py Flask route
+    fetch('/api/bank/extend-offer', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        // CRITICAL FIX: The key must be exactly 'aadhar' to match data.get('aadhar')
+        body: JSON.stringify({
+            aadhar: farmerAadhar 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Success: Investment proposal dispatched successfully to farmer dashboard.");
+            // Optional: Reload the portal layout dynamically to reflect status updates
+            window.location.reload();
+        } else {
+            alert("Transmission Error: " + (data.error || "Proposal deployment failed."));
+        }
+    })
+    .catch(err => {
+        console.error("Network Link Exception:", err);
+        alert("Transmission Critical Mismatch: Could not handshake with backend route.");
+    });
+}
+    </script>
+</body>
+</html>

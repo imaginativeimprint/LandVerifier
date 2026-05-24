@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Kisan Saarthi | ಕಿಸಾನ್ ಸಾರಥಿ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { font-family: 'Segoe UI', system-ui, sans-serif; }
+    .lang-btn-active { background-color: #15803d; color: white !important; }
+    .card-hover { transition: all 0.2s ease; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    .deadline-badge { background: #ffedd5; color: #9a3412; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 1rem; }
+    .kannada-font { font-family: 'Noto Sans Kannada', 'Segoe UI', sans-serif; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+  <header class="bg-gradient-to-r from-green-800 to-green-700 text-white shadow-md mb-6">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+          <i class="fas fa-tractor text-2xl text-green-300"></i>
+        </div>
+        <div>
+          <h1 id="mainTitle" class="text-xl font-bold tracking-tight">ಕಿಸಾನ್ ಸಾರಥಿ</h1>
+          <p id="subTitle" class="text-xs text-green-100 opacity-90">ಕರ್ನಾಟಕ ಸರ್ಕಾರದ ಸಕ್ರಿಯ ಕೃಷಿ ಯೋಜನೆಗಳು | ಮಂಡ್ಯಕ್ಕೆ ವಿಶೇಷ ಆದ್ಯತೆ</p>
+        </div>
+      </div>
+      
+      <div class="flex flex-wrap items-center justify-end gap-3 w-full sm:w-auto">
+        <div class="flex bg-black/20 p-1 rounded-full backdrop-blur-sm border border-white/10">
+          <button id="btnKannada" class="lang-btn text-xs font-bold px-3 py-1.5 rounded-full text-white lang-btn-active">ಕನ್ನಡ</button>
+          <button id="btnEnglish" class="lang-btn text-xs font-bold px-3 py-1.5 rounded-full text-green-200 hover:text-white">English</button>
+          <button id="btnHindi" class="lang-btn text-xs font-bold px-3 py-1.5 rounded-full text-green-200 hover:text-white">हिन्दी</button>
+        </div>
+        
+        <div class="flex gap-2">
+          <a href="/farmer/dashboard" class="text-xs bg-white/10 hover:bg-white/20 transition px-3 py-2 rounded-lg font-medium backdrop-blur-sm">
+            <i class="fas fa-chart-pie mr-1"></i> Dashboard
+          </a>
+          <a href="/logout" class="text-xs bg-red-600 hover:bg-red-700 transition px-3 py-2 rounded-lg font-medium text-white shadow-sm">
+            <i class="fas fa-sign-out-alt"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4">
+    
+    <div class="bg-white p-5 rounded-2xl shadow-md border border-gray-100 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label id="labelSearch" class="block text-xs font-bold uppercase mb-1.5 text-gray-500 tracking-wider">🔍 ಹುಡುಕಿ</label>
+          <input type="text" id="searchInput" class="w-full border border-gray-200 rounded-xl py-2.5 px-3 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-600 focus:outline-none transition" placeholder="ಯೋಜನೆ ಹೆಸರು / ಪ್ರಯೋಜನ...">
+        </div>
+        <div>
+          <label id="labelDistrict" class="block text-xs font-bold uppercase mb-1.5 text-gray-500 tracking-wider">📍 ಜಿಲ್ಲೆ ಅನ್ವಯ</label>
+          <select id="districtFilter" class="w-full border border-gray-200 rounded-xl py-2.5 px-3 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-600 focus:outline-none transition">
+            <option value="all">ಎಲ್ಲಾ ಜಿಲ್ಲೆಗಳು</option>
+            <option value="Mandya">ಮಂಡ್ಯ (ವಿಶೇಷ)</option>
+            <option value="Karnataka">ಇಡೀ ಕರ್ನಾಟಕ</option>
+            <option value="All India">ರಾಷ್ಟ್ರೀಯ ಯೋಜನೆಗಳು</option>
+          </select>
+        </div>
+        <div>
+          <label id="labelCrop" class="block text-xs font-bold uppercase mb-1.5 text-gray-500 tracking-wider">🌾 ಬೆಳೆ ಪ್ರಕಾರ</label>
+          <select id="cropFilter" class="w-full border border-gray-200 rounded-xl py-2.5 px-3 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-600 focus:outline-none transition">
+            <option value="all" id="optAllCrops">ಎಲ್ಲಾ ಬೆಳೆಗಳು</option>
+          </select>
+        </div>
+        <div>
+          <label id="labelSort" class="block text-xs font-bold uppercase mb-1.5 text-gray-500 tracking-wider">📌 ವಿಂಗಡಣೆ</label>
+          <div class="flex gap-2">
+            <select id="sortSelect" class="flex-1 border border-gray-200 rounded-xl py-2.5 px-2 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-green-600 focus:outline-none transition">
+              <option value="deadline_asc" id="optDeadline">ಮುಕ್ತಾಯ ದಿನಾಂಕ (ಹತ್ತಿರದ)</option>
+              <option value="name" id="optName">ಯೋಜನೆ ಹೆಸರು</option>
+            </select>
+            <button id="resetBtn" class="bg-gray-100 px-4 rounded-xl hover:bg-gray-200 border transition"><i class="fas fa-undo-alt text-gray-600"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 lg:col-span-2">
+        <div class="bg-green-50 p-3 rounded-xl border border-green-100 flex flex-col justify-between">
+          <div class="flex gap-2 items-center text-green-800"><i class="fas fa-list text-green-700"></i><span id="statActive" class="text-xs font-bold">ಸಕ್ರಿಯ ಯೋಜನೆಗಳು</span></div>
+          <p id="schemeCount" class="text-3xl font-extrabold text-green-900 mt-2">0</p>
+        </div>
+        <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 flex flex-col justify-between">
+          <div class="flex gap-2 items-center text-blue-800"><i class="fas fa-map-marker-alt text-blue-700"></i><span id="statMandya" class="text-xs font-bold">ಮಂಡ್ಯಕ್ಕೆ ವಿಶೇಷ</span></div>
+          <p id="mandyaCount" class="text-3xl font-extrabold text-blue-900 mt-2">0</p>
+        </div>
+        <div class="bg-amber-50 p-3 rounded-xl border border-amber-100 flex flex-col justify-between">
+          <div class="flex gap-2 items-center text-amber-800"><i class="fas fa-rupee-sign text-amber-700"></i><span id="statSubsidy" class="text-xs font-bold">ಸಹಾಯಧನ</span></div>
+          <p class="text-lg font-extrabold text-amber-900 mt-2">30% - 90%</p>
+        </div>
+        <div class="bg-purple-50 p-3 rounded-xl border border-purple-100 flex flex-col justify-between">
+          <div class="flex gap-2 items-center text-purple-800"><i class="fas fa-phone-alt text-purple-700"></i><span id="statHelpline" class="text-xs font-bold">ಸಹಾಯವಾಣಿ</span></div>
+          <p id="txtActiveStatus" class="text-lg font-extrabold text-purple-900 mt-2">ಸಕ್ರಿಯ</p>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100 flex flex-col justify-between gap-3">
+        <div>
+          <p id="contactLabel" class="font-bold text-gray-700 text-sm"><i class="fas fa-headset text-green-600 mr-1"></i> ಸಹಾಯಕ್ಕಾಗಿ ಸಂಪರ್ಕಿಸಿ</p>
+          <div class="flex flex-wrap gap-2 mt-2">
+            <a href="tel:+917411338134" class="bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-gray-100"><i class="fas fa-phone-alt text-green-600 mr-1"></i> 7411338134</a>
+            <a href="tel:+919901985441" class="bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-medium hover:bg-gray-100"><i class="fas fa-phone-alt text-green-600 mr-1"></i> 9901985441</a>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-1">
+          <a href="https://wa.me/919035852317?text=Hello" target="_blank" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-sm transition"><i class="fab fa-whatsapp text-sm"></i> WhatsApp</a>
+          <a href="https://chat.whatsapp.com/yourgroupinvite" target="_blank" id="whatsappGroupBtn" class="flex-1 bg-green-800 hover:bg-green-900 text-white text-xs py-2 rounded-xl flex items-center justify-center gap-1.5 font-bold shadow-sm transition"><i class="fab fa-whatsapp text-sm"></i> <span id="groupBtnText">WhatsApp ಗ್ರೂಪ್</span></a>
+        </div>
+      </div>
+    </div>
+
+    <div id="schemesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20"></div>
+  </main>
+
+  <script>
+    // COMPLETE TRILINGUAL MULTILINGUAL DIRECTORY SCHEMES ENGINE
+    const schemesDB = [
+      { 
+        id: 1, 
+        name_kn: "ಪಿಎಂ-ಕುಸುಮ್ ಸೌರ ಪಂಪ್", name_en: "PM-KUSUM Solar Pump", name_hi: "पीएम-कुसुम सौर पंप योजना",
+        ministry: "MNRE", 
+        desc_kn: "ಸೌರಶಕ್ತಿ ಸ್ವಾವಲಂಬನೆ, ಗ್ರಿಡ್ ಗೆ ವಿದ್ಯುತ್ ಮಾರಾಟ", desc_en: "Solar energy for irrigation & selling surplus power to the grid", desc_hi: "सिंचाई کے लिए सौर ऊर्जा और ग्रिड को अधिशेष बिजली बेचना", 
+        benefits_kn: "10% ಮುಂಗಡ, 60% ಸಬ್ಸಿಡಿ", benefits_en: "10% upfront payment, 60% system subsidy", benefits_hi: "10% अग्रिम भुगतान, 60% सब्सिडी", 
+        eligibility_kn: "ಎಲ್ಲಾ ರೈತರು", eligibility_en: "All landholding farmers", eligibility_hi: "सभी भूमिधारक किसान", 
+        subsidy_kn: "30% ಕೇಂದ್ರ + 30% ರಾಜ್ಯ", subsidy_en: "30% Central + 30% State Share", subsidy_hi: "30% केंद्र + 30% राज्य हिस्सा", 
+        state: "All India", district: "All India", 
+        crop_kn: "ಎಲ್ಲಾ ಬೆಳೆಗಳು", crop_en: "All crops", crop_hi: "सभी फसलें",
+        website: "https://pmkusum.mnre.gov.in", applyLink: "https://pmkusum.mnre.gov.in/landing.html", helpline: "1800-180-3333", deadline: "2026-12-31", specialMandya: false 
+      },
+      { 
+        id: 2, 
+        name_kn: "ಪಿಎಂ-ಕಿಸಾನ್ ನೇರ ಸಹಾಯ", name_en: "PM-KISAN DBT", name_hi: "पीएम-किसान सम्मान निधि",
+        ministry: "Agriculture", 
+        desc_kn: "ವಾರ್ಷಿಕ ₹6,000 ನೇರ ವರ್ಗಾವಣೆ", desc_en: "Direct income support of ₹6000 per year transferred via DBT", desc_hi: "डीबीटी के माध्यम से प्रति वर्ष ₹6000 की प्रत्यक्ष आय सहायता", 
+        benefits_kn: "3 ಕಂತುಗಳಲ್ಲಿ ₹2000", benefits_en: "₹2000 split across 3 seasonal installments", benefits_hi: "3 किश्तों में ₹2000 प्रत्येक", 
+        eligibility_kn: "ಭೂಮಾಲೀಕ ರೈತರು", eligibility_en: "All small and marginal landowning families", eligibility_hi: "सभी छोटे और सीमांत भूमिधारक किसान", 
+        subsidy_kn: "100% ಕೇಂದ್ರ ಅನುದಾನ", subsidy_en: "100% Central Funded Scheme", subsidy_hi: "100% केंद्रीय वित्त पोषित योजना", 
+        state: "All India", district: "All India", 
+        crop_kn: "ಎಲ್ಲಾ", crop_en: "All", crop_hi: "सभी फसलें",
+        website: "https://pmkisan.gov.in", applyLink: "https://pmkisan.gov.in/RegistrationFormNew.aspx", helpline: "155261", deadline: "2026-11-30", specialMandya: false 
+      },
+      { 
+        id: 3, 
+        name_kn: "ರೈತ ಶ್ರೀ (ಕಲ್ಯಾಣ)", name_en: "Raitha Siri Scheme", name_hi: "रायता सिरी योजना",
+        ministry: "Karnataka Agri", 
+        desc_kn: "ಸಣ್ಣ ಮತ್ತು ಅಂಚಿನ ರೈತರಿಗೆ ₹10,000/ವರ್ಷ", desc_en: "Financial assistance of ₹10,000 per year for millets production expansion", desc_hi: "बाजरा उत्पादन विस्तार के लिए प्रति वर्ष ₹10,000 की वित्तीय सहायता", 
+        benefits_kn: "ಪ್ರತಿ ಕುಟುಂಬಕ್ಕೆ ₹10,000", benefits_en: "Direct financial grant of ₹10,000 per household", benefits_hi: "प्रति परिवार ₹10,000 का प्रत्यक्ष वित्तीय अनुदान", 
+        eligibility_kn: "ಕರ್ನಾಟಕದ ಸಣ್ಣ ರೈತರು", eligibility_en: "Millet cultivating farmers within Karnataka", eligibility_hi: "कर्नाटक के भीतर बाजरा उगाने वाले किसान", 
+        subsidy_kn: "100% ರಾಜ್ಯ ಸರ್ಕಾರ", subsidy_en: "100% State Govt Financed", subsidy_hi: "100% राज्य सरकार द्वारा वित्त पोषित", 
+        state: "Karnataka", district: "Karnataka", 
+        crop_kn: "ಸಿರಿಧಾನ್ಯಗಳು, ರಾಗಿ", crop_en: "Millets, Ragi", crop_hi: "बाजरा, रागी",
+        website: "https://raitasiri.karnataka.gov.in", applyLink: "https://raitasiri.karnataka.gov.in/apply", helpline: "080-22345678", deadline: "2026-10-15", specialMandya: false 
+      },
+      { 
+        id: 4, 
+        name_kn: "ಕೃಷಿ ಭಾಗ್ಯ", name_en: "Krishi Bhagya", name_hi: "कृषि भाग्य योजना",
+        ministry: "Watershed", 
+        desc_kn: "ಮಳೆ ಆಶ್ರಿತ ಪ್ರದೇಶಗಳಲ್ಲಿ ಕೆರೆ, ಬೋರ್ವೆಲ್ ಪುನಶ್ಚೇತನ", desc_en: "Rainwater harvesting and storage infrastructure creation in drylands", desc_hi: "शुष्क भूमि में वर्षा जल संचयन और कृषि तालाब बुनियादी ढांचे का निर्माण", 
+        benefits_kn: "75% ಸಬ್ಸಿಡಿ", benefits_en: "Up to 75% material and labor expense subsidy", benefits_hi: "75% तक सामग्री और श्रम व्यय सब्सिडी", 
+        eligibility_kn: "ಮಂಡ್ಯ ಸೇರಿದಂತೆ ಮಳೆ ಆಶ್ರಿತ ರೈತರು", eligibility_en: "Rainfed farmers with localized title holdings", eligibility_hi: "वर्षा आधारित कृषि क्षेत्र वाले किसान", 
+        subsidy_kn: "75% ಸಬ್ಸಿಡಿ", subsidy_en: "75% Cost Covered", subsidy_hi: "75% लागत कवर", 
+        state: "Karnataka", district: "Mandya,Karnataka", 
+        crop_kn: "ರಾಗಿ, ಜೋಳ, ತೆಂಗು", crop_en: "Ragi, Jowar, Coconut", crop_hi: "रागी, ज्वार, नारियल",
+        website: "https://watershed.karnataka.gov.in", applyLink: "https://krishibhagya.kar.nic.in", helpline: "080-23341666", deadline: "2026-08-30", specialMandya: true 
+      },
+      { 
+        id: 5, 
+        name_kn: "ಪಿಎಂ ಫಸಲ್ ಬೀಮಾ", name_en: "PM Fasal Bima Yojana", name_hi: "प्रधानमंत्री फसल बीमा योजना",
+        ministry: "Agriculture", 
+        desc_kn: "ಬೆಳೆ ವಿಮೆ ಕವರ್", desc_en: "Comprehensive crop risk insurance coverage against natural disasters", desc_hi: "प्राकृतिक आपदाओं के खिलाफ व्यापक फसल जोखिम बीमा कवरेज", 
+        benefits_kn: "2% ಪ್ರೀಮಿಯಂ, ಹಾನಿ ಪರಿಹಾರ", benefits_en: "Fixed low premium (1.5% - 2.0%) and complete safety payouts", benefits_hi: "निश्चित कम प्रीमियम और पूर्ण नुकसान भुगतान सुरक्षा", 
+        eligibility_kn: "ಎಲ್ಲಾ ರೈತರು", eligibility_en: "All farmers growing notified operational crops", eligibility_hi: "अधिसूचित फसलें उगाने वाले सभी किसान", 
+        subsidy_kn: "ಕೇಂದ್ರ-ರಾಜ್ಯ 50:50", subsidy_en: "Premium subsidized 50:50 Central-State", subsidy_hi: "प्रीमियम सब्सिडी 50:50 केंद्र-राज्य", 
+        state: "All India", district: "All India", 
+        crop_kn: "ಎಲ್ಲಾ ಪ್ರಮುಖ ಬೆಳೆಗಳು", crop_en: "All notified commercial crops", crop_hi: "सभी अधिसूचित फसलें",
+        website: "https://pmfby.gov.in", applyLink: "https://pmfby.gov.in/farmer/newRegistration", helpline: "1800-180-1551", deadline: "2026-07-31", specialMandya: false 
+      },
+      { 
+        id: 6, 
+        name_kn: "ಸಸ್ಯಶ್ರೀ ಕೃಷಿ ಮೂಲಸೌಕರ್ಯ", name_en: "Sasyashree Agri Infrastructure", name_hi: "सस्यश्री कृषि अवसंरचना निधि",
+        ministry: "Karnataka Agri", 
+        desc_kn: "ಕೋಲ್ಡ್ ಸ್ಟೋರೇಜ್, ಗೋದಾಮು ನಿರ್ಮಾಣಕ್ಕೆ ಸಾಲ ಸೌಲಭ್ಯ", desc_en: "Low interest bank capital credit desks for warehouses & cold rooms", desc_hi: "गोदामों और कोल्ड रूम के निर्माण के लिए कम ब्याज ऋण सहायता", 
+        benefits_kn: "5% ಬಡ್ಡಿ ರಿಯಾಯಿತಿ", benefits_en: "5% dynamic ongoing annual interest rate reduction", benefits_hi: "5% वार्षिक ब्याज दर में निरंतर छूट सहायता", 
+        eligibility_kn: "FPO, ಸಹಕಾರ ಸಂಘಗಳು", eligibility_en: "FPOs, primary agricultural cooperatives, individual youth", eligibility_hi: "एफपीओ, प्राथमिक कृषि सहकारी समितियां", 
+        subsidy_kn: "₹2 ಕೋಟಿ ವರೆಗೆ ಸಾಲ", subsidy_en: "Up to ₹2 Crores term lending lines", subsidy_hi: "₹2 करोड़ तक ऋण सीमा सुविधा", 
+        state: "Karnataka", district: "Mandya,Karnataka", 
+        crop_kn: "ಹಣ್ಣು / ತರಕಾರಿ", crop_en: "Fruits, Vegetables", crop_hi: "फल, सब्जियां",
+        website: "https://karnatakaagriportal.in", applyLink: "https://sasyashree.karnataka.gov.in", helpline: "080-22233344", deadline: "2026-09-15", specialMandya: true 
+      },
+      { 
+        id: 7, 
+        name_kn: "ಸೂಕ್ಷ್ಮ ನೀರಾವರಿ (ಹನಿ/ಸ್ಪ್ರಿಂಕ್ಲರ್)", name_en: "Micro Irrigation (PMKSY)", name_hi: "सूक्ष्म सिंचाई योजना (ड्रिप/स्प्रिंकलर)",
+        ministry: "Agriculture", 
+        desc_kn: "ಹನಿ ನೀರಾವರಿಗೆ 55% ಸಬ್ಸಿಡಿ", desc_en: "Precision localized micro-drip deployment infrastructure packages", desc_hi: "सटीक स्थानीयकृत माइक्रो-ड्रिप सिंचाई प्रणाली स्थापना पैकेज", 
+        benefits_kn: "ನೀರು ಉಳಿತಾಯ, ಇಳುವರಿ ಹೆಚ್ಚಳ", benefits_en: "Massive water reduction and increased yields", benefits_hi: "भारी जल बचत और फसल पैदावार में वृद्धि", 
+        eligibility_kn: "ಎಲ್ಲಾ ರೈತರು", eligibility_en: "All operational farm plot owners", eligibility_hi: "सभी कार्यरत खेत भूखंड मालिक", 
+        subsidy_kn: "ಸಣ್ಣ ರೈತರಿಗೆ 55%, ಇತರರಿಗೆ 45%", subsidy_en: "55% for marginal farmers, 45% others", subsidy_hi: "सीमांत किसानों के लिए 55%, अन्यों के लिए 45%", 
+        state: "All India", district: "Mandya,Karnataka", 
+        crop_kn: "ಕಬ್ಬು, ತರಕಾರಿ, ಬಾಳೆ", crop_en: "Sugarcane, Vegetables, Banana", crop_hi: "गन्ना, सब्जियां, केला",
+        website: "https://pmksy.gov.in", applyLink: "https://pmksy.gov.in/mis/Farmers/Registration.aspx", helpline: "011-23381208", deadline: "2026-12-20", specialMandya: true 
+      },
+      { 
+        id: 8, 
+        name_kn: "ರೈತ ವಿದ್ಯಾ ನಿಧಿ", name_en: "Raitha Vidya Nidhi", name_hi: "मुख्यमंत्री रायता विद्या निधि योजना",
+        ministry: "Karnataka Edu", 
+        desc_kn: "ರೈತರ ಮಕ್ಕಳಿಗೆ ವಿದ್ಯಾರ್ಥಿವೇತನ", desc_en: "Higher education incentive scholarships for kids of active land owners", desc_hi: "सक्रिय किसानों के बच्चों के लिए उच्च शिक्षा प्रोत्साहन छात्रवृत्ति", 
+        benefits_kn: "ವಾರ್ಷಿಕ ₹20,000", benefits_en: "Up to ₹20,000 direct bank transfer per year", benefits_hi: "प्रति वर्ष ₹20,000 तक प्रत्यक्ष बैंक हस्तांतरण", 
+        eligibility_kn: "ಕರ್ನಾಟಕ ರೈತರ ಮಕ್ಕಳು", eligibility_en: "Children of registered farmers in higher education tiers", eligibility_hi: "उच्च शिक्षा स्तर में पंजीकृत किसानों के बच्चे", 
+        subsidy_kn: "100% ರಾಜ್ಯ", subsidy_en: "100% State Funded", subsidy_hi: "100% राज्य द्वारा वित्त पोषित", 
+        state: "Karnataka", district: "Mandya,Karnataka", 
+        crop_kn: "ಯಾವುದಾದರೂ", crop_en: "Any", crop_hi: "कोई भी",
+        website: "https://raitavidya.kar.nic.in", applyLink: "https://raitavidya.karnataka.gov.in", helpline: "080-22340678", deadline: "2026-08-10", specialMandya: true 
+      },
+      { 
+        id: 17, 
+        name_kn: "ಮಂಡ್ಯ ಜಲ ಸಮೃದ್ಧಿ ಯೋಜನೆ", name_en: "Mandya Jala Samrudhi Yojana", name_hi: "मंड्या जल समृद्धि योजना",
+        ministry: "Minor Irrigation", 
+        desc_kn: "ಕೆರೆ ಮತ್ತು ಕೊಳವೆ ಬಾವಿಗಳ ಪುನರುಜ್ಜೀವನ", desc_en: "Community tank rehabilitation and local canal desilting inside Mandya", desc_hi: "मंड्या के भीतर सामुदायिक तालाब पुनर्वास और स्थानीय नहर गाद निकालना", 
+        benefits_kn: "80% ಸಬ್ಸಿಡಿ", benefits_en: "80% fiscal resource cost matching structural grants", benefits_hi: "80% वित्तीय संसाधन लागत मिलान संरचनात्मक अनुदान", 
+        eligibility_kn: "ಮಂಡ್ಯ ಜಿಲ್ಲೆಯ ರೈತರು", eligibility_en: "Farmers holding active land matrices in Mandya boundaries", eligibility_hi: "मंड्या सीमाओं में सक्रिय भूमि वाले किसान", 
+        subsidy_kn: "80% ಸಬ್ಸಿಡಿ", subsidy_en: "80% State Subsidy Support", subsidy_hi: "80% राज्य सब्सिडी सहायता", 
+        state: "Karnataka", district: "Mandya", 
+        crop_kn: "ಭತ್ತ, ಕಬ್ಬು, ತೆಂಗು", crop_en: "Paddy, Sugarcane, Coconut", crop_hi: "धान, गन्ना, नारियल",
+        website: "https://mandyazilla.kar.nic.in", applyLink: "https://jalasamrudhi.mandya.in", helpline: "08232-222345", deadline: "2026-09-05", specialMandya: true 
+      },
+      { 
+        id: 21, 
+        name_kn: "ಇ-ನಾಮ್ ರಾಷ್ಟ್ರೀಯ ಮಾರುಕಟ್ಟೆ", name_en: "e-NAM Digital Trade", name_hi: "ई-नाम राष्ट्रीय कृषि बाजार",
+        ministry: "SFAC", 
+        desc_kn: "ಆನ್ಲೈನ್ ಕೃಷಿ ವ್ಯಾಪಾರ", desc_en: "Unified cross-border digital spot market exchange for transparent sales", desc_hi: "पारदर्शी बिक्री के लिए एकीकृत डिजिटल हाजिर बाजार विनिमय", 
+        benefits_kn: "ಪಾರದರ್ಶಕ ಬೆಲೆ", benefits_en: "Direct bid-matching discovery removing mid-tier commission losses", benefits_hi: "बिचौलियों के कमीशन के बिना प्रत्यक्ष बोली-मिलान मूल्य खोज", 
+        eligibility_kn: "ಎಲ್ಲಾ ರೈತರು", eligibility_en: "All market-ready registered farmers", eligibility_hi: "सभी बाजार-तैयार पंजीकृत किसान", 
+        subsidy_kn: "ಉಚಿತ ನೋಂದಣಿ", subsidy_en: "100% Free Platform Access", subsidy_hi: "100% निःशुल्क प्लेटफ़ॉर्म एक्सेस", 
+        state: "All India", district: "All India", 
+        crop_kn: "ಎಲ್ಲಾ", crop_en: "All Crops", crop_hi: "सभी फसलें",
+        website: "https://enam.gov.in", applyLink: "https://enam.gov.in/web/dashboard/farmer-registration", helpline: "1800-270-0224", deadline: "continuous", specialMandya: false 
+      }
+    ];
+
+    let currentLang = "kn"; // kn, en, or hi
+
+    // Explicit Localization Text Fetcher Tool
+    function t(scheme, field) {
+      const key = `${field}_${currentLang}`;
+      return scheme[key] || scheme[`${field}_en`] || "";
+    }
+
+    function renderCards(schemes) {
+      const container = document.getElementById('schemesContainer');
+      if(!schemes.length) {
+        let noMsg = "ಯಾವುದೇ ಯೋಜನೆಗಳಿಲ್ಲ";
+        if(currentLang === "en") noMsg = "No matching schemes found inside tracking register.";
+        if(currentLang === "hi") noMsg = "कोई मिलान योजना नहीं मिली।";
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400 font-medium text-sm">${noMsg}</div>`;
+        return;
+      }
+      
+      let txtActive = (currentLang === "kn") ? "ಸಕ್ರಿಯ" : (currentLang === "hi" ? "सक्रिय" : "Active");
+      let txtApply = (currentLang === "kn") ? "ನೇರ ಅರ್ಜಿ" : (currentLang === "hi" ? "आवेदन करें" : "Apply Now");
+      let txtDetails = (currentLang === "kn") ? "ವಿವರ" : (currentLang === "hi" ? "वेबसाइट" : "Website");
+      let txtDeadline = (currentLang === "kn") ? "ಮುಕ್ತಾಯ:" : (currentLang === "hi" ? "अंतिम तिथि:" : "Deadline:");
+      let txtHelpline = (currentLang === "kn") ? "ಸಹಾಯವಾಣಿ:" : (currentLang === "hi" ? "हेल्पलाइन:" : "Helpline:");
+
+      container.innerHTML = schemes.map(s => `
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden card-hover flex flex-col h-full justify-between">
+          <div class="p-5 flex-1">
+            <div class="flex justify-between items-start gap-2 mb-2">
+              <h3 class="font-bold text-gray-800 text-base leading-snug">${t(s, "name")}</h3>
+              <span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">${txtActive}</span>
+            </div>
+            <p class="text-[11px] font-bold tracking-wider text-green-700 bg-green-50 inline-block px-2 py-0.5 rounded-md mb-3">${s.ministry}</p>
+            <p class="text-xs text-gray-600 leading-relaxed mb-4 line-clamp-3">${t(s, "desc")}</p>
+            <div class="space-y-2 border-t border-gray-50 pt-3 text-xs text-gray-700">
+              <div class="flex items-start gap-2">
+                <i class="fas fa-gift text-green-600 mt-0.5 w-4 text-center"></i> 
+                <div><span class="text-gray-400 font-medium mr-1">${currentLang === 'en' ? 'Benefits:' : (currentLang === 'hi' ? 'लाभ:' : 'ಪ್ರಯೋಜನಗಳು:') }</span>${t(s, "benefits")}</div>
+              </div>
+              <div class="flex items-start gap-2">
+                <i class="fas fa-users text-green-600 mt-0.5 w-4 text-center"></i> 
+                <div><span class="text-gray-400 font-medium mr-1">${currentLang === 'en' ? 'Eligibility:' : (currentLang === 'hi' ? 'पात्रता:' : 'ಅರ್ಹತೆ:') }</span>${t(s, "eligibility")}</div>
+              </div>
+              <div class="flex items-start gap-2">
+                <i class="fas fa-tag text-green-600 mt-0.5 w-4 text-center"></i> 
+                <div><span class="text-gray-400 font-medium mr-1">${currentLang === 'en' ? 'Subsidy:' : (currentLang === 'hi' ? 'सब्सिडी:' : 'ಸಹಾಯಧನ:') }</span>${t(s, "subsidy")}</div>
+              </div>
+              <div class="flex items-start gap-2">
+                <i class="fas fa-seedling text-green-600 mt-0.5 w-4 text-center"></i> 
+                <div><span class="text-gray-400 font-medium mr-1">${currentLang === 'en' ? 'Crop:' : (currentLang === 'hi' ? 'फसल:' : 'ಬೆಳೆ:') }</span>${t(s, "crop")}</div>
+              </div>
+              <div class="flex items-start gap-2">
+                <i class="far fa-calendar-alt text-red-500 mt-0.5 w-4 text-center"></i> 
+                <div class="font-medium"><span class="text-gray-400 font-medium mr-1">${txtDeadline}</span> ${s.deadline}</div>
+              </div>
+            </div>
+            <div class="mt-4 flex gap-2">
+              <a href="${s.applyLink}" target="_blank" class="flex-1 text-center bg-green-700 hover:bg-green-800 text-white font-bold text-xs px-3 py-2 rounded-xl transition shadow-sm"><i class="fas fa-pen-alt mr-1"></i> ${txtApply}</a>
+              <a href="${s.website}" target="_blank" class="flex-1 text-center bg-gray-100 border border-gray-200 text-gray-700 font-medium text-xs px-3 py-2 rounded-xl hover:bg-gray-200 transition"><i class="fas fa-globe mr-1"></i> ${txtDetails}</a>
+            </div>
+          </div>
+          <div class="bg-gray-50/80 px-5 py-2.5 text-[11px] text-gray-500 border-t border-gray-100 font-monospace"><i class="fas fa-phone-alt text-gray-400 mr-1"></i> ${txtHelpline} <span class="font-bold text-gray-700">${s.helpline}</span></div>
+        </div>
+      `).join('');
+      
+      document.getElementById('schemeCount').innerText = schemes.length;
+      const mandyaSpecial = schemes.filter(s => s.specialMandya === true).length;
+      document.getElementById('mandyaCount').innerText = mandyaSpecial;
+    }
+
+    // PERFECTED MULTILINGUAL HIGH-RELIABILITY SORTING CALCULATOR
+    function applyFilters() {
+      let filtered = [...schemesDB];
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const district = document.getElementById('districtFilter').value;
+      const cropVal = document.getElementById('cropFilter').value;
+
+      if(search) {
+        filtered = filtered.filter(s => 
+          t(s,"name").toLowerCase().includes(search) || 
+          t(s,"desc").toLowerCase().includes(search) ||
+          s.ministry.toLowerCase().includes(search)
+        );
+      }
+      if(district !== "all") {
+        filtered = filtered.filter(s => 
+          s.district.split(',').includes(district) || 
+          (district === "Karnataka" && s.state === "Karnataka") || 
+          (district === "All India" && s.state === "All India")
+        );
+      }
+      if(cropVal !== "all") {
+        filtered = filtered.filter(s => t(s,"crop").toLowerCase().includes(cropVal.toLowerCase()));
+      }
+
+      // Sorting Algorithm
+      const sortType = document.getElementById('sortSelect').value;
+      if(sortType === "deadline_asc") {
+        filtered.sort((a, b) => {
+          const dateA = (a.deadline && /^\d{4}-\d{2}-\d{2}$/.test(a.deadline)) ? new Date(a.deadline).getTime() : Infinity;
+          const dateB = (b.deadline && /^\d{4}-\d{2}-\d{2}$/.test(b.deadline)) ? new Date(b.deadline).getTime() : Infinity;
+          return dateA - dateB; // Pushes missing or indefinite dates to the absolute bottom safely
+        });
+      } else if(sortType === "name") {
+        filtered.sort((a, b) => t(a, "name").localeCompare(t(b, "name"), currentLang));
+      }
+
+      renderCards(filtered);
+    }
+
+    // Populate crops selector dynamically
+    function repopulateCropFilter() {
+      const cropSelect = document.getElementById('cropFilter');
+      const currentValue = cropSelect.value;
+      
+      // Keep clear option index 0
+      cropSelect.innerHTML = '';
+      let optAll = document.createElement('option');
+      optAll.value = "all";
+      optAll.id = "optAllCrops";
+      if(currentLang === "en") optAll.innerText = "All Crops";
+      else if(currentLang === "hi") optAll.innerText = "सभी फसलें";
+      else optAll.innerText = "ಎಲ್ಲಾ ಬೆಳೆಗಳು";
+      cropSelect.appendChild(optAll);
+
+      const cropSet = new Set();
+      schemesDB.forEach(s => { 
+        let c = t(s, "crop"); 
+        c.split(',').forEach(cr => { if(cr.trim() && cr.trim() !== "NA") cropSet.add(cr.trim()); }); 
+      });
+      
+      cropSet.forEach(c => { 
+        let opt = document.createElement('option'); 
+        opt.value = c; 
+        opt.innerText = c; 
+        cropSelect.appendChild(opt); 
+      });
+
+      // Restore active selection if present in new set
+      if(Array.from(cropSet).includes(currentValue)) {
+        cropSelect.value = currentValue;
+      }
+    }
+
+    // Event Wire Links
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('districtFilter').addEventListener('change', applyFilters);
+    document.getElementById('cropFilter').addEventListener('change', applyFilters);
+    document.getElementById('sortSelect').addEventListener('change', applyFilters);
+    
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('districtFilter').value = 'all';
+      document.getElementById('cropFilter').value = 'all';
+      applyFilters();
+    });
+
+    // COMPLETE LOCALIZATION CONFIGURATION MAP
+    function setLanguage(lang) {
+      currentLang = lang;
+      
+      // Highlight selection buttons
+      document.querySelectorAll(".lang-btn").forEach(b => b.classList.remove("lang-btn-active", "text-white"));
+      if(lang === "kn") {
+        document.getElementById("btnKannada").classList.add("lang-btn-active");
+        
+        document.getElementById("mainTitle").innerText = "ಕಿಸಾನ್ ಸಾರಥಿ";
+        document.getElementById("subTitle").innerText = "ಕರ್ನಾಟಕ ಸರ್ಕಾರದ ಸಕ್ರಿಯ ಕೃಷಿ ಯೋಜನೆಗಳು | ಮಂಡ್ಯಕ್ಕೆ ವಿಶೇಷ ಆದ್ಯತೆ";
+        document.getElementById("labelSearch").innerText = "🔍 ಹುಡುಕಿ";
+        document.getElementById("labelDistrict").innerText = "📍 ಜಿಲ್ಲೆ ಅನ್ವಯ";
+        document.getElementById("labelCrop").innerText = "🌾 ಬೆಳೆ ಪ್ರಕಾರ";
+        document.getElementById("labelSort").innerText = "📌 ವಿಂಗಡಣೆ";
+        document.getElementById("statActive").innerText = "ಸಕ್ರಿಯ ಯೋಜನೆಗಳು";
+        document.getElementById("statMandya").innerText = "ಮಂಡ್ಯಕ್ಕೆ ವಿಶೇಷ";
+        document.getElementById("statSubsidy").innerText = "ಸಹಾಯಧನ";
+        document.getElementById("statHelpline").innerText = "ಸಹಾಯವಾಣಿ";
+        document.getElementById("txtActiveStatus").innerText = "ಸಕ್ರಿಯ";
+        document.getElementById("contactLabel").innerHTML = "<i class='fas fa-headset text-green-600 mr-1'></i> ಸಹಾಯಕ್ಕಾಗಿ ಸಂಪರ್ಕಿಸಿ";
+        document.getElementById("groupBtnText").innerText = "WhatsApp ಗ್ರೂಪ್";
+        
+        document.getElementById("optDeadline").innerText = "ಮುಕ್ತಾಯ ದಿನಾಂಕ (ಹತ್ತಿರದ)";
+        document.getElementById("optName").innerText = "ಯೋಜನೆ ಹೆಸರು";
+        
+        document.querySelector('#districtFilter option[value="all"]').innerText = "ಎಲ್ಲಾ ಜಿಲ್ಲೆಗಳು";
+        document.querySelector('#districtFilter option[value="Mandya"]').innerText = "ಮಂಡ್ಯ (ವಿಶೇಷ)";
+        document.querySelector('#districtFilter option[value="Karnataka"]').innerText = "ಇಡೀ ಕರ್ನಾಟಕ";
+        document.querySelector('#districtFilter option[value="All India"]').innerText = "ರಾಷ್ಟ್ರೀಯ ಯೋಜನೆಗಳು";
+      } 
+      else if(lang === "en") {
+        document.getElementById("btnEnglish").classList.add("lang-btn-active");
+        
+        document.getElementById("mainTitle").innerText = "Kisan Saarthi";
+        document.getElementById("subTitle").innerText = "Active Agriculture Schemes of Karnataka | Special focus on Mandya";
+        document.getElementById("labelSearch").innerText = "🔍 Search Directory";
+        document.getElementById("labelDistrict").innerText = "📍 District Applicability";
+        document.getElementById("labelCrop").innerText = "🌾 Crop Category";
+        document.getElementById("labelSort").innerText = "📌 Sort Schemes";
+        document.getElementById("statActive").innerText = "Active Schemes";
+        document.getElementById("statMandya").innerText = "Mandya Specials";
+        document.getElementById("statSubsidy").innerText = "Subsidies Allocation";
+        document.getElementById("statHelpline").innerText = "Helpdesks";
+        document.getElementById("txtActiveStatus").innerText = "Live Online";
+        document.getElementById("contactLabel").innerHTML = "<i class='fas fa-headset text-green-600 mr-1'></i> Contact Support Desks";
+        document.getElementById("groupBtnText").innerText = "WhatsApp Community";
+        
+        document.getElementById("optDeadline").innerText = "Closing Date (Nearest First)";
+        document.getElementById("optName").innerText = "Scheme Title (A-Z)";
+        
+        document.querySelector('#districtFilter option[value="all"]').innerText = "All Districts Available";
+        document.querySelector('#districtFilter option[value="Mandya"]').innerText = "Mandya Regional (Special)";
+        document.querySelector('#districtFilter option[value="Karnataka"]').innerText = "State Level (Karnataka)";
+        document.querySelector('#districtFilter option[value="All India"]').innerText = "National Central Schemes";
+      }
+      else if(lang === "hi") {
+        document.getElementById("btnHindi").classList.add("lang-btn-active");
+        
+        document.getElementById("mainTitle").innerText = "किसान सारथी";
+        document.getElementById("subTitle").innerText = "कर्नाटक सरकार की सक्रिय कृषि योजनाएं | मंड्या पर विशेष ध्यान";
+        document.getElementById("labelSearch").innerText = "🔍 योजना खोजें";
+        document.getElementById("labelDistrict").innerText = "📍 जिला प्रयोज्यता";
+        document.getElementById("labelCrop").innerText = "🌾 फसल के प्रकार";
+        document.getElementById("labelSort").innerText = "📌 क्रमबद्ध करें";
+        document.getElementById("statActive").innerText = "सक्रिय योजनाएं";
+        document.getElementById("statMandya").innerText = "मंड्या विशेष";
+        document.getElementById("statSubsidy").innerText = "अनुदान सहायता";
+        document.getElementById("statHelpline").innerText = "हेल्पलाइन नंबर";
+        document.getElementById("txtActiveStatus").innerText = "सक्रिय";
+        document.getElementById("contactLabel").innerHTML = "<i class='fas fa-headset text-green-600 mr-1'></i> सहायता के लिए संपर्क करें";
+        document.getElementById("groupBtnText").innerText = "व्हाट्सएप ग्रुप";
+        
+        document.getElementById("optDeadline").innerText = "अंतिम तिथि (निकटतम पहले)";
+        document.getElementById("optName").innerText = "योजना का नाम";
+        
+        document.querySelector('#districtFilter option[value="all"]').innerText = "सभी उपलब्ध जिले";
+        document.querySelector('#districtFilter option[value="Mandya"]').innerText = "मंड्या क्षेत्र (विशेष)";
+        document.querySelector('#districtFilter option[value="Karnataka"]').innerText = "राज्य स्तर (कर्नाटक)";
+        document.querySelector('#districtFilter option[value="All India"]').innerText = "राष्ट्रीय केंद्रीय योजनाएं";
+      }
+
+      repopulateCropFilter();
+      applyFilters();
+    }
+
+    // Bind Core UI Clicks
+    document.getElementById("btnKannada").addEventListener("click", () => setLanguage("kn"));
+    document.getElementById("btnEnglish").addEventListener("click", () => setLanguage("en"));
+    document.getElementById("btnHindi").addEventListener("click", () => setLanguage("hi"));
+    
+    // Initial Render Launch Execution
+    setLanguage("kn");
+  </script>
+</body>
+</html>

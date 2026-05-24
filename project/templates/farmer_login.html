@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Login - PESEC Land Verification</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a2f1a 0%, #1a5f2a 100%);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-card {
+            background: white;
+            border-radius: 32px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+        .farmer-icon { text-align: center; font-size: 64px; margin-bottom: 20px; }
+        h2 { color: #1a472a; font-weight: 700; text-align: center; }
+        .subtitle { text-align: center; color: #6c757d; margin-bottom: 30px; }
+        .aadhar-input {
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-align: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            font-family: monospace;
+        }
+        .aadhar-input:focus {
+            border-color: #28a745;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(40,167,69,0.1);
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #28a745 0%, #1a472a 100%);
+            border: none;
+            padding: 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            width: 100%;
+        }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(40,167,69,0.4); }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        .demo-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s;
+        }
+        .demo-item:hover { background: #28a745; color: white; transform: scale(1.02); }
+        .demo-aadhar { font-family: monospace; font-size: 11px; font-weight: 600; }
+        .demo-name { font-size: 11px; margin-top: 4px; }
+        .demo-grid-position { font-size: 9px; margin-top: 2px; opacity: 0.7; }
+        .error-alert {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background: #e8f5e9;
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="farmer-icon"><i class="fas fa-seedling" style="color: #28a745;"></i></div>
+            <h2>Farmer Login</h2>
+            <p class="subtitle">Access your registered agricultural land in PESEC area</p>
+            
+            {% if error %}
+            <div class="error-alert">
+                <i class="fas fa-exclamation-triangle me-2"></i> {{ error }}
+            </div>
+            {% endif %}
+            
+            <form method="POST">
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">📇 Farmer ID / Aadhar</label>
+                    <input type="text" class="form-control aadhar-input" name="aadhar" id="aadharInput"
+                           placeholder="RED-ID-XXXX (e.g., RED-ID-0101)" required autocomplete="off">
+                    <div class="form-text text-muted mt-2">
+                        <i class="fas fa-lock"></i> Enter your unique Farmer ID (RED-ID-XXXX format)
+                    </div>
+                </div>
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <i class="fas fa-leaf me-2"></i> Login to Your Land
+                </button>
+            </form>
+            
+            <div class="mt-4">
+                <div class="bg-light p-3 rounded-3">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fas fa-users text-success"></i>
+                        <strong class="small">Demo Farmers (Click to test)</strong>
+                        <span class="badge bg-success ms-2">12x12 Grid</span>
+                    </div>
+                    <div class="demo-grid" id="demoGrid"></div>
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i> 
+                        Click any demo farmer to auto-fill their ID. These correspond to actual grid positions.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a href="/" class="text-decoration-none"><i class="fas fa-arrow-left me-1"></i> Back to Home</a>
+                <span class="mx-2">|</span>
+                <a href="/admin/login" class="text-decoration-none"><i class="fas fa-shield-alt me-1"></i> Admin Login</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Demo farmers based on RED-ID format (matching boundary_data)
+        const DEMO_FARMERS = [
+            { aadhar: "RED-ID-0101", name: "Ramesh Gowda", crop: "Sugarcane", grid: "R01C01" },
+            { aadhar: "RED-ID-0102", name: "Lakshmamma", crop: "Paddy", grid: "R01C02" },
+            { aadhar: "RED-ID-0103", name: "Kumaraswamy", crop: "Ragi", grid: "R01C03" },
+            { aadhar: "RED-ID-0104", name: "Deve Gowda", crop: "Coconut", grid: "R01C04" },
+            { aadhar: "RED-ID-0105", name: "Nanjunda Swamy", crop: "Maize", grid: "R01C05" },
+            { aadhar: "RED-ID-0106", name: "Putta Swamy", crop: "Banana", grid: "R01C06" },
+            { aadhar: "RED-ID-0201", name: "Siddappa", crop: "Arecanut", grid: "R02C01" },
+            { aadhar: "RED-ID-0202", name: "Mahadeva", crop: "Cotton", grid: "R02C02" },
+            { aadhar: "RED-ID-0203", name: "Basavaraj", crop: "Groundnut", grid: "R02C03" },
+            { aadhar: "RED-ID-0301", name: "Nagamma", crop: "Sunflower", grid: "R03C01" },
+            { aadhar: "RED-ID-0302", name: "Honnappa", crop: "Vegetables", grid: "R03C02" },
+            { aadhar: "RED-ID-0401", name: "Thimmanna", crop: "Flowers", grid: "R04C01" },
+            { aadhar: "RED-ID-0501", name: "Shankar", crop: "Pulses", grid: "R05C01" },
+            { aadhar: "RED-ID-0601", name: "Radha", crop: "Mango", grid: "R06C01" },
+            { aadhar: "RED-ID-0701", name: "Venkatesh", crop: "Coffee", grid: "R07C01" },
+            { aadhar: "RED-ID-0801", name: "Manjunath", crop: "Rubber", grid: "R08C01" },
+            { aadhar: "RED-ID-0901", name: "Sarojamma", crop: "Cashew", grid: "R09C01" },
+            { aadhar: "RED-ID-1001", name: "Ravindra", crop: "Ginger", grid: "R10C01" },
+            { aadhar: "RED-ID-1101", name: "Girijamma", crop: "Tobacco", grid: "R11C01" },
+            { aadhar: "RED-ID-1201", name: "Suresh", crop: "Cardamom", grid: "R12C01" },
+            { aadhar: "RED-ID-1212", name: "Nirmala", crop: "Spinach", grid: "R12C12" }
+        ];
+        
+        function loadDemoFarmers() {
+            const grid = document.getElementById('demoGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = DEMO_FARMERS.map(farmer => `
+                <div class="demo-item" onclick="selectFarmer('${farmer.aadhar}', '${farmer.name}')">
+                    <div class="demo-aadhar">${farmer.aadhar}</div>
+                    <div class="demo-name">${farmer.name}</div>
+                    <div class="demo-grid-position">${farmer.grid} | ${farmer.crop}</div>
+                </div>
+            `).join('');
+        }
+        
+        function selectFarmer(aadhar, name) {
+            const input = document.getElementById('aadharInput');
+            if (input) {
+                input.value = aadhar;
+                input.style.borderColor = '#28a745';
+                input.style.backgroundColor = '#e8f5e9';
+                setTimeout(() => {
+                    input.style.borderColor = '#e0e0e0';
+                    input.style.backgroundColor = 'white';
+                }, 1000);
+                showToast(`Selected: ${name} (${aadhar}) - Grid position loaded`, 'success');
+            }
+        }
+        
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; bottom: 20px; right: 20px;
+                background: ${type === 'success' ? '#28a745' : '#dc3545'};
+                color: white; padding: 12px 20px; border-radius: 12px;
+                z-index: 9999; animation: slideInRight 0.3s ease;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            `;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        const style = document.createElement('style');
+        style.textContent = `@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`;
+        document.head.appendChild(style);
+        
+        loadDemoFarmers();
+    </script>
+</body>
+</html>
